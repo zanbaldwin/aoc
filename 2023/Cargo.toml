@@ -13,3 +13,11 @@ rstest_reuse = "0.6"
 miette = { version = "5.10", features = ["fancy"] }
 thiserror = "1.0"
 load_file = "1.0"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"
+debug = false
