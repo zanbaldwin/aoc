@@ -1,10 +1,13 @@
-use crate::aoc_error::AocError;
+use crate::{aoc_error::AocError, parser::parse};
 
-pub fn process(_input: &str) -> miette::Result<String, AocError> {
-    Err(AocError::IoError(::std::io::Error::new(
-        ::std::io::ErrorKind::Other,
-        "Not yet implemented.",
-    )))
+pub fn process(input: &str) -> miette::Result<String, AocError> {
+    let games = parse(input)?;
+    let power: u32 = games
+        .iter()
+        .map(|game| game.get_minimum_counts())
+        .map(|counts| counts.red as u32 * counts.green as u32 * counts.blue as u32)
+        .sum();
+    Ok(power.to_string())
 }
 
 #[cfg(test)]
