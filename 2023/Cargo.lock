@@ -66,7 +66,6 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 name = "day01"
 version = "0.1.0"
 dependencies = [
- "load_file",
  "miette",
  "thiserror",
  "tracing",
@@ -77,7 +76,6 @@ dependencies = [
 name = "day02"
 version = "0.1.0"
 dependencies = [
- "load_file",
  "miette",
  "nom",
  "thiserror",
@@ -89,7 +87,6 @@ dependencies = [
 name = "day03"
 version = "0.1.0"
 dependencies = [
- "load_file",
  "miette",
  "thiserror",
  "tracing",
@@ -152,12 +149,6 @@ name = "linux-raw-sys"
 version = "0.4.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c4cd1a83af159aa67994778be9070f0ae1bd732942279cabb14f86f986a21456"
-
-[[package]]
-name = "load_file"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "31da4bce62428941030036a44d0d4b123f031b04080f8aeb44248b41de3e79cd"
 
 [[package]]
 name = "log"
