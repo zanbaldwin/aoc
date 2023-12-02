@@ -1,10 +1,11 @@
 use crate::aoc_error::AocError;
 
-pub fn process(_input: &str) -> miette::Result<String, AocError> {
-    Err(AocError::IoError(::std::io::Error::new(
-        ::std::io::ErrorKind::Other, 
-        "Not yet implemented.",
-    )))
+pub fn process(input: &str) -> miette::Result<String, AocError> {
+    let total: u32 = input.lines().map(|line: &str| -> u32 {
+        let nums: Vec<u32> = line.chars().filter_map(|c| c.to_digit(10)).collect();
+        (nums.first().unwrap() * 10) + nums.last().unwrap()
+    }).sum();
+    Ok(total.to_string())
 }
 
 #[cfg(test)]
