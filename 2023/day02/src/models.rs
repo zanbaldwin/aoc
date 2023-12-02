@@ -30,10 +30,20 @@ impl Draw {
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub(crate) struct Counts {
     pub red: u16,
     pub green: u16,
     pub blue: u16,
+}
+impl Default for Counts {
+    fn default() -> Self {
+        Self {
+            red: 0,
+            green: 0,
+            blue: 0,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -78,5 +88,79 @@ impl Game {
 
     pub fn get_rounds(&self) -> Vec<Round> {
         self.rounds.clone()
+    }
+
+    pub fn get_minimum_counts(&self) -> Counts {
+        let colour_draws = self.rounds
+            .iter()
+            .map(|round| round.get_counts())
+            .fold((vec![], vec![], vec![]), |mut acc, counts| {
+                if counts.red != 0 { acc.0.push(counts.red) };
+                if counts.green != 0 { acc.1.push(counts.green) };
+                if counts.blue != 0 { acc.2.push(counts.blue) };
+                acc
+            });
+        return Counts {
+            red: *colour_draws.0.iter().max().unwrap_or(&0),
+            green: *colour_draws.1.iter().max().unwrap_or(&0),
+            blue: *colour_draws.2.iter().max().unwrap_or(&0),
+        };
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_minimum_counts() {
+        let game = Game {
+            id: 1,
+            rounds: vec![
+                Round {
+                    draws: vec![
+                        Draw {
+                            amount: 3,
+                            colour: Colour::Blue,
+                        },
+                        Draw {
+                            amount: 4,
+                            colour: Colour::Red,
+                        },
+                    ],
+                },
+                Round {
+                    draws: vec![
+                        Draw {
+                            amount: 1,
+                            colour: Colour::Red,
+                        },
+                        Draw {
+                            amount: 2,
+                            colour: Colour::Green,
+                        },
+                        Draw {
+                            amount: 6,
+                            colour: Colour::Blue,
+                        },
+                    ],
+                },
+                Round {
+                    draws: vec![Draw {
+                        amount: 2,
+                        colour: Colour::Green,
+                    }],
+                },
+            ],
+        };
+
+        assert_eq!(
+            Counts {
+                red: 4,
+                green: 2,
+                blue: 6
+            },
+            game.get_minimum_counts(),
+        );
     }
 }
