@@ -1,3 +1,5 @@
+use std::cmp::max;
+
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) enum Colour {
     Red,
@@ -91,20 +93,15 @@ impl Game {
     }
 
     pub fn get_minimum_counts(&self) -> Counts {
-        let colour_draws = self.rounds
+        self.rounds
             .iter()
             .map(|round| round.get_counts())
-            .fold((vec![], vec![], vec![]), |mut acc, counts| {
-                if counts.red != 0 { acc.0.push(counts.red) };
-                if counts.green != 0 { acc.1.push(counts.green) };
-                if counts.blue != 0 { acc.2.push(counts.blue) };
-                acc
-            });
-        return Counts {
-            red: *colour_draws.0.iter().max().unwrap_or(&0),
-            green: *colour_draws.1.iter().max().unwrap_or(&0),
-            blue: *colour_draws.2.iter().max().unwrap_or(&0),
-        };
+            .reduce(|acc, counts| Counts {
+                red: max(acc.red, counts.red),
+                green: max(acc.green, counts.green),
+                blue: max(acc.blue, counts.blue),
+            })
+            .unwrap_or_default()
     }
 }
 
