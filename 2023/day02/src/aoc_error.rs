@@ -1,6 +1,6 @@
 use miette::Diagnostic;
-use thiserror::Error as ThisError;
 use std::io::Error;
+use thiserror::Error as ThisError;
 
 #[derive(ThisError, Diagnostic, Debug)]
 pub enum AocError {

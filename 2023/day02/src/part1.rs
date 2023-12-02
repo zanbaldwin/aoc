@@ -1,10 +1,28 @@
-use crate::aoc_error::AocError;
+use crate::{aoc_error::AocError, parser::parse};
 
-pub fn process(_input: &str) -> miette::Result<String, AocError> {
-    Err(AocError::IoError(::std::io::Error::new(
-        ::std::io::ErrorKind::Other, 
-        "Not yet implemented.",
-    )))
+static POSSIBLE_RED: u16 = 12;
+static POSSIBLE_GREEN: u16 = 13;
+static POSSIBLE_BLUE: u16 = 14;
+
+pub fn process(input: &str) -> miette::Result<String, AocError> {
+    let games = parse(input)?;
+    let id_sum: u32 = games
+        .iter()
+        .filter(|game| -> bool {
+            for round in game.get_rounds() {
+                let round_counts = round.get_counts();
+                if round_counts.red > POSSIBLE_RED
+                    || round_counts.green > POSSIBLE_GREEN
+                    || round_counts.blue > POSSIBLE_BLUE
+                {
+                    return false;
+                }
+            }
+            true
+        })
+        .map(|game| game.get_id() as u32)
+        .sum();
+    Ok(id_sum.to_string())
 }
 
 #[cfg(test)]
