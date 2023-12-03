@@ -88,6 +88,17 @@ name = "day03"
 version = "0.1.0"
 dependencies = [
  "miette",
+ "nom",
+ "thiserror",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "day04"
+version = "0.1.0"
+dependencies = [
+ "miette",
  "thiserror",
  "tracing",
  "tracing-subscriber",
