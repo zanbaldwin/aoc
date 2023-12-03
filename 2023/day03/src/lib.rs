@@ -1,7 +1,9 @@
 use aoc_error::AocError;
+use parser::parse;
+use serde::Serialize;
 use std::{
     cmp::{max, min},
-    io::{Error, ErrorKind},
+    io::{Error, ErrorKind}, ffi::{c_char, CStr, CString},
 };
 
 pub mod aoc_error;
@@ -34,9 +36,19 @@ impl<'a> Chunk<'a> {
     }
 }
 
+// Exporting Functions for use in FFI
+
+#[no_mangle]
+pub extern "C" fn parse_engine_to_json(input: *const c_char) -> *const c_char {
+    let input = unsafe { CStr::from_ptr(input) }.to_str().unwrap();
+    let engine: EngineMap = parse(input).expect("Engine input could not be parsed.").into();
+    let json = serde_json::to_string(&engine).unwrap();
+    CString::new(json).unwrap().into_raw()
+}
+
 // Structures for Mapping Positions of Engine Parts
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 struct Coord {
     x: usize,
     y: usize,
@@ -50,13 +62,13 @@ impl Coord {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 struct Symbol {
     symbol: char,
     coord: Coord,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 struct PartNumber {
     id: usize,
     length: usize,
@@ -89,7 +101,7 @@ impl PartNumber {
 
 type Parts = Vec<PartNumber>;
 type Symbols = Vec<Symbol>;
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 struct EngineMap {
     parts: Parts,
     symbols: Symbols,
