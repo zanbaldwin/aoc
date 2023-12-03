@@ -110,11 +110,28 @@ impl From<Engine<'_>> for EngineMap {
         EngineMap { parts, symbols }
     }
 }
-impl EngineMap {
+type Gear<'a> = (&'a Symbol, Vec<&'a PartNumber>);
+impl<'a> EngineMap {
     fn get_parts_neighbouring_any_symbol(&self) -> Vec<&PartNumber> {
         self.parts
             .iter()
             .filter(|part| -> bool { self.symbols.iter().any(|symbol| part.neighbours(symbol)) })
+            .collect()
+    }
+
+    fn get_adjacent_parts(&self, symbol: &Symbol) -> Vec<&PartNumber> {
+        self.parts
+            .iter()
+            .filter(|part| part.neighbours(symbol))
+            .collect()
+    }
+
+    fn get_gears(&'a self) -> Vec<Gear<'a>> {
+        self.symbols
+            .iter()
+            .filter(|symbol| symbol.symbol == '*')
+            .map(|symbol| -> Gear<'a> { (symbol, self.get_adjacent_parts(symbol)) })
+            .filter(|gear| gear.1.len() == 2)
             .collect()
     }
 }
