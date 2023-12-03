@@ -3,7 +3,7 @@ use std::fmt;
 
 impl fmt::Display for Symbol {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "'{}', ({},{})", self.symbol, self.x, self.y)
+        write!(f, "'{}', ({},{})", self.symbol, self.coord.x, self.coord.y)
     }
 }
 
@@ -13,9 +13,9 @@ impl fmt::Display for PartNumber {
             f,
             "#{} ({}-{},{})",
             self.id,
-            self.x,
-            self.x + self.length,
-            self.y
+            self.coord.x,
+            self.coord.x.saturating_add(self.length).saturating_sub(1),
+            self.coord.y
         )
     }
 }

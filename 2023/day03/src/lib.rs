@@ -34,18 +34,22 @@ impl<'a> Chunk<'a> {
 // Structures for Mapping Positions of Engine Parts
 
 #[derive(Debug)]
-struct Symbol {
-    symbol: char,
+struct Coord {
     x: usize,
     y: usize,
+}
+
+#[derive(Debug)]
+struct Symbol {
+    symbol: char,
+    coord: Coord,
 }
 
 #[derive(Debug)]
 struct PartNumber {
     id: usize,
     length: usize,
-    x: usize,
-    y: usize,
+    coord: Coord,
 }
 impl PartNumber {
     pub fn from_str(part: &str, x: usize, y: usize) -> Self {
@@ -54,22 +58,24 @@ impl PartNumber {
                 .parse()
                 .expect("Part constructed with malformed ID number."),
             length: part.len(),
-            x,
-            y,
+            coord: Coord { x, y },
         }
     }
 
     pub fn neighbours(&self, symbol: &Symbol) -> bool {
-        let topleft = (self.x.saturating_sub(1), self.y.saturating_sub(1));
-        let bottomright = (
-            self.x.saturating_add(self.length).saturating_add(1),
-            self.y.saturating_add(1),
-        );
+        let topleft = Coord {
+            x: self.coord.x.saturating_sub(1),
+            y: self.coord.y.saturating_sub(1),
+        };
+        let bottomright = Coord {
+            x: self.coord.x.saturating_add(self.length),
+            y: self.coord.y.saturating_add(1),
+        };
         // Is the symbol within the bounding box?
-        symbol.x >= topleft.0
-            && symbol.x <= bottomright.0
-            && symbol.y >= topleft.1
-            && symbol.y <= bottomright.1
+        symbol.coord.x >= topleft.x
+            && symbol.coord.x <= bottomright.x
+            && symbol.coord.y >= topleft.y
+            && symbol.coord.y <= bottomright.y
     }
 }
 
@@ -85,6 +91,8 @@ impl From<Engine<'_>> for EngineMap {
         let mut parts: Vec<PartNumber> = vec![];
         let mut symbols: Vec<Symbol> = vec![];
         for (index, line) in engine.iter().enumerate() {
+            // Starting from (1,1) makes more sense to me as we are indicating
+            // the position of "boxes" rather than point coordinates.
             let y = index + 1;
             let mut x: usize = 1;
             for chunk in line {
@@ -93,8 +101,7 @@ impl From<Engine<'_>> for EngineMap {
                 } else if let Chunk::Symbol(symbol) = chunk {
                     symbols.push(Symbol {
                         symbol: *symbol,
-                        x,
-                        y,
+                        coord: Coord { x, y },
                     })
                 }
                 x += chunk.len();
@@ -107,12 +114,7 @@ impl EngineMap {
     fn get_parts_neighbouring_any_symbol(&self) -> Vec<&PartNumber> {
         self.parts
             .iter()
-            .filter(|part| -> bool {
-                self.symbols
-                    .iter()
-                    .find(|symbol| part.neighbours(symbol))
-                    .is_some()
-            })
+            .filter(|part| -> bool { self.symbols.iter().any(|symbol| part.neighbours(symbol)) })
             .collect()
     }
 }
