@@ -32,20 +32,11 @@ impl Draw {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Default)]
 pub(crate) struct Counts {
     pub red: u16,
     pub green: u16,
     pub blue: u16,
-}
-impl Default for Counts {
-    fn default() -> Self {
-        Self {
-            red: 0,
-            green: 0,
-            blue: 0,
-        }
-    }
 }
 
 #[derive(Debug, Clone)]

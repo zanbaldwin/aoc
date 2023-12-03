@@ -45,7 +45,7 @@ fn parse_game(input: &str) -> IResult<&str, Game> {
 pub(crate) fn parse(input: &str) -> Result<Vec<Game>, AocError> {
     match separated_list1(line_ending, parse_game)(input) {
         Ok((remaining_input, games)) => {
-            if remaining_input.trim().len() > 0 {
+            if !remaining_input.trim().is_empty() {
                 Err(AocError::IoError(Error::new(
                     ErrorKind::InvalidInput,
                     format!("Additional unparsed data at the end of input: {remaining_input}"),
