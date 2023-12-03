@@ -1,10 +1,11 @@
-use crate::aoc_error::AocError;
+use crate::{aoc_error::AocError, parser::parse, Engine, EngineMap};
 
-pub fn process(_input: &str) -> miette::Result<String, AocError> {
-    Err(AocError::IoError(::std::io::Error::new(
-        ::std::io::ErrorKind::Other,
-        "Not yet implemented.",
-    )))
+pub fn process(input: &str) -> miette::Result<String, AocError> {
+    let engine: Engine = parse(input)?;
+    let map: EngineMap = engine.into();
+    let parts = map.get_parts_next_to_symbols();
+    let total: usize = parts.iter().map(|part| part.id).sum();
+    Ok(total.to_string())
 }
 
 #[cfg(test)]
