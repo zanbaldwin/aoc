@@ -1,8 +1,8 @@
 use aoc_error::AocError;
-use std::fmt;
 use std::io::{Error, ErrorKind};
 
 pub mod aoc_error;
+mod display;
 mod parser;
 pub mod part1;
 pub mod part2;
@@ -10,6 +10,8 @@ pub mod part2;
 fn invalid_input_error(message: &str) -> AocError {
     AocError::IoError(Error::new(ErrorKind::InvalidInput, message))
 }
+
+// Structures for Initial Parsing of Input Text
 
 type Engine<'a> = Vec<Line<'a>>;
 type Line<'a> = Vec<Chunk<'a>>;
@@ -29,16 +31,13 @@ impl<'a> Chunk<'a> {
     }
 }
 
+// Structures for Mapping Positions of Engine Parts
+
 #[derive(Debug)]
 struct Symbol {
     symbol: char,
     x: usize,
     y: usize,
-}
-impl fmt::Display for Symbol {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "'{}', ({},{})", self.symbol, self.x, self.y)
-    }
 }
 
 #[derive(Debug)]
@@ -49,7 +48,7 @@ struct PartNumber {
     y: usize,
 }
 impl PartNumber {
-    pub fn new(part: &str, x: usize, y: usize) -> Self {
+    pub fn from_str(part: &str, x: usize, y: usize) -> Self {
         Self {
             id: part
                 .parse()
@@ -60,7 +59,7 @@ impl PartNumber {
         }
     }
 
-    pub fn is_next_to_symbol(&self, symbol: &Symbol) -> bool {
+    pub fn neighbours(&self, symbol: &Symbol) -> bool {
         let topleft = (self.x.saturating_sub(1), self.y.saturating_sub(1));
         let bottomright = (
             self.x.saturating_add(self.length).saturating_add(1),
@@ -73,18 +72,6 @@ impl PartNumber {
             && symbol.y <= bottomright.1
     }
 }
-impl fmt::Display for PartNumber {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
-        write!(
-            f,
-            "#{} ({}-{},{})",
-            self.id,
-            self.x,
-            self.x + self.length,
-            self.y
-        )
-    }
-}
 
 type Parts = Vec<PartNumber>;
 type Symbols = Vec<Symbol>;
@@ -92,32 +79,6 @@ type Symbols = Vec<Symbol>;
 struct EngineMap {
     parts: Parts,
     symbols: Symbols,
-}
-impl fmt::Display for EngineMap {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
-        let mut lines: Vec<String> = vec![];
-        let max_width = ::std::cmp::max(
-            self.parts.len().to_string().len(),
-            self.symbols.len().to_string().len(),
-        );
-
-        lines.push("List of Machine Parts".to_string());
-        for (index, part) in self.parts.iter().enumerate() {
-            lines.push(format!("{:width$}: {}", index + 1, part, width = max_width));
-        }
-
-        lines.push("\nList of Symbols".to_string());
-        for (index, symbol) in self.symbols.iter().enumerate() {
-            lines.push(format!(
-                "{:width$}: {}",
-                index + 1,
-                symbol,
-                width = max_width
-            ));
-        }
-
-        write!(f, "{}", lines.join("\n"))
-    }
 }
 impl From<Engine<'_>> for EngineMap {
     fn from(engine: Engine<'_>) -> Self {
@@ -128,7 +89,7 @@ impl From<Engine<'_>> for EngineMap {
             let mut x: usize = 1;
             for chunk in line {
                 if let Chunk::PartNumber(number) = chunk {
-                    parts.push(PartNumber::new(number, x, y));
+                    parts.push(PartNumber::from_str(number, x, y));
                 } else if let Chunk::Symbol(symbol) = chunk {
                     symbols.push(Symbol {
                         symbol: *symbol,
@@ -143,15 +104,14 @@ impl From<Engine<'_>> for EngineMap {
     }
 }
 impl EngineMap {
-    fn get_parts_next_to_symbols(&self) -> Vec<&PartNumber> {
+    fn get_parts_neighbouring_any_symbol(&self) -> Vec<&PartNumber> {
         self.parts
             .iter()
             .filter(|part| -> bool {
                 self.symbols
                     .iter()
-                    .filter(|symbol| part.is_next_to_symbol(symbol))
-                    .count()
-                    > 0
+                    .find(|symbol| part.neighbours(symbol))
+                    .is_some()
             })
             .collect()
     }
