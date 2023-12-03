@@ -1,5 +1,8 @@
 use aoc_error::AocError;
-use std::io::{Error, ErrorKind};
+use std::{
+    cmp::{max, min},
+    io::{Error, ErrorKind},
+};
 
 pub mod aoc_error;
 mod display;
@@ -38,6 +41,14 @@ struct Coord {
     x: usize,
     y: usize,
 }
+impl Coord {
+    fn is_bounded_by(&self, corner1: &Coord, corner2: &Coord) -> bool {
+        self.x >= min(corner1.x, corner2.x)
+            && self.x <= max(corner1.x, corner2.x)
+            && self.y >= min(corner1.y, corner2.y)
+            && self.y <= max(corner1.y, corner2.y)
+    }
+}
 
 #[derive(Debug)]
 struct Symbol {
@@ -72,10 +83,7 @@ impl PartNumber {
             y: self.coord.y.saturating_add(1),
         };
         // Is the symbol within the bounding box?
-        symbol.coord.x >= topleft.x
-            && symbol.coord.x <= bottomright.x
-            && symbol.coord.y >= topleft.y
-            && symbol.coord.y <= bottomright.y
+        symbol.coord.is_bounded_by(&topleft, &bottomright)
     }
 }
 
