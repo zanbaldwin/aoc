@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
 members = ["day*"]
+exclude = ["day-template"]
 
 [workspace.dependencies]
 glam = "0.24"
