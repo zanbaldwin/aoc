@@ -38,6 +38,13 @@ pub(crate) struct Counts {
     pub green: u16,
     pub blue: u16,
 }
+impl Counts {
+    pub fn possible_with(&self, restriction: &Counts) -> bool {
+        self.red <= restriction.red
+            && self.green <= restriction.green
+            && self.blue <= restriction.blue
+    }
+}
 
 #[derive(Debug, Clone)]
 pub(crate) struct Round {
