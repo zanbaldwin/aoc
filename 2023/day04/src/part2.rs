@@ -1,10 +1,23 @@
-use crate::aoc_error::AocError;
+use std::collections::HashMap;
 
-pub fn process(_input: &str) -> miette::Result<String, AocError> {
-    Err(AocError::IoError(::std::io::Error::new(
-        ::std::io::ErrorKind::Other,
-        "Not yet implemented.",
-    )))
+use crate::{aoc_error::AocError, parser::parse};
+
+pub fn process(input: &str) -> miette::Result<String, AocError> {
+    let scratchcards = parse(input)?;
+    let mut tally: HashMap<u32, u32> = HashMap::new();
+
+    for scratchcard in scratchcards {
+        let count_of_current_card = tally.entry(scratchcard.id()).or_insert(1).clone();
+        let num_matches_of_current_card = scratchcard.num_matches();
+        for i in 1..=num_matches_of_current_card {
+            let copy_number = scratchcard.id() + i;
+            let copy_count = tally.entry(copy_number).or_insert(1);
+            *copy_count = *copy_count + count_of_current_card;
+        }
+    }
+
+    let total_cards: u32 = tally.iter().map(|(_card_number, count)| *count).sum();
+    Ok(total_cards.to_string())
 }
 
 #[cfg(test)]
