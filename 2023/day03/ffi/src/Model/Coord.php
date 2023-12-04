@@ -1,10 +1,12 @@
 <?php declare(strict_types=1);
 
+namespace ZanBaldwin\AoC\Day03\Model;
+
 /** @phpstan-type CoordShape array{x: int, y: int} */
-readonly class Coord {
+final class Coord {
     public function __construct(
-        public int $x,
-        public int $y,
+        public readonly int $x,
+        public readonly int $y,
     ) {}
 
     /** @param CoordShape $coord */

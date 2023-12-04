@@ -1,13 +1,15 @@
 <?php declare(strict_types=1);
 
+namespace ZanBaldwin\AoC\Day03\Model;
+
 /**
  * @phpstan-import-type CoordShape from Coord
  * @phpstan-type SymbolShape array{symbol: string, coord: CoordShape}
  */
-readonly class Symbol {
+final class Symbol {
     public function __construct(
-        public string $symbol,
-        public Coord $coord,
+        public readonly string $symbol,
+        public readonly Coord $coord,
     ) {}
 
     /** @param SymbolShape $symbol */

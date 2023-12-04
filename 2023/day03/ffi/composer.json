@@ -1,0 +1,23 @@
+{
+    "name": "zanbaldwin/aoc-2023-day03",
+    "description": "PHP Implementation for Day 3 of Advent of Code 2023",
+    "type": "project",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "ZanBaldwin\\AoC\\Day03\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Zan Baldwin",
+            "email": "hello@zanbaldwin.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=8.1",
+        "ext-ffi": "*",
+        "ext-json": "*"
+    }
+}
