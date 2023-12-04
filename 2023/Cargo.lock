@@ -99,6 +99,7 @@ name = "day04"
 version = "0.1.0"
 dependencies = [
  "miette",
+ "nom",
  "thiserror",
  "tracing",
  "tracing-subscriber",
