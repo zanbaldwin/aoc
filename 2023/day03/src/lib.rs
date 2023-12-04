@@ -3,7 +3,8 @@ use parser::parse;
 use serde::Serialize;
 use std::{
     cmp::{max, min},
-    io::{Error, ErrorKind}, ffi::{c_char, CStr, CString},
+    ffi::{c_char, CStr, CString},
+    io::{Error, ErrorKind},
 };
 
 pub mod aoc_error;
@@ -41,7 +42,9 @@ impl<'a> Chunk<'a> {
 #[no_mangle]
 pub extern "C" fn parse_engine_to_json(input: *const c_char) -> *const c_char {
     let input = unsafe { CStr::from_ptr(input) }.to_str().unwrap();
-    let engine: EngineMap = parse(input).expect("Engine input could not be parsed.").into();
+    let engine: EngineMap = parse(input)
+        .expect("Engine input could not be parsed.")
+        .into();
     let json = serde_json::to_string(&engine).unwrap();
     CString::new(json).unwrap().into_raw()
 }
