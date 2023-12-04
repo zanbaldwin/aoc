@@ -18,7 +18,6 @@ fn main() {
 
     let mut config = Config::default();
     config.language = cbindgen::Language::C;
-    config.namespace = Some(String::from("ffi"));
 
     cbindgen::Builder::new()
         .with_crate_and_name(crate_dir, package_name)
