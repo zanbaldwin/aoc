@@ -28,4 +28,11 @@ impl Scratchcard {
     pub fn id(&self) -> u32 {
         self.id
     }
+
+    pub fn num_matches(&self) -> u32 {
+        self.playing_numbers
+            .iter()
+            .filter(|&number| self.winning_numbers.contains(number))
+            .count() as u32
+    }
 }
