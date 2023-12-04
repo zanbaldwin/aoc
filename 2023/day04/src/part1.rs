@@ -1,10 +1,14 @@
-use crate::aoc_error::AocError;
+use crate::{aoc_error::AocError, parser::parse};
 
-pub fn process(_input: &str) -> miette::Result<String, AocError> {
-    Err(AocError::IoError(::std::io::Error::new(
-        ::std::io::ErrorKind::Other,
-        "Not yet implemented.",
-    )))
+pub fn process(input: &str) -> miette::Result<String, AocError> {
+    let scratchcards = parse(input)?;
+    let total: u32 = scratchcards
+        .iter()
+        .map(|scratchcard| scratchcard.num_matches())
+        .filter(|num_matches| *num_matches > 0)
+        .map(|num_matches| 2u32.pow(num_matches - 1))
+        .sum();
+    Ok(total.to_string())
 }
 
 #[cfg(test)]
