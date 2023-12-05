@@ -9,9 +9,9 @@ pub enum AocError {
     #[diagnostic(code(aoc::io_error))]
     IoError(IoError),
 }
-impl AocError {
-    pub fn from_str(message: &str) -> Self {
-        AocError::IoError(IoError::new(ErrorKind::InvalidInput, message))
+impl From<&str> for AocError {
+    fn from(value: &str) -> Self {
+        AocError::IoError(IoError::new(ErrorKind::InvalidInput, value))
     }
 }
 
@@ -22,13 +22,11 @@ where
     match parser.parse(input.trim()) {
         Ok((remaining_input, engine)) => {
             if !remaining_input.trim().is_empty() {
-                Err(AocError::from_str(
-                    "Additional unparsed data at the end of input: {remaining_input}",
-                ))
+                Err("Additional unparsed data at the end of input: {remaining_input}".into())
             } else {
                 Ok(engine)
             }
         }
-        Err(_) => Err(AocError::from_str("Input could not be correctly parsed.")),
+        Err(_) => Err("Input could not be correctly parsed.".into()),
     }
 }
