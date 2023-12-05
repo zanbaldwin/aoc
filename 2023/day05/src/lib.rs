@@ -4,7 +4,6 @@ pub mod part2;
 use common::AocError;
 
 mod models {
-    use core::fmt;
     use std::{collections::HashMap, ops::Range};
 
     #[derive(Debug)]
@@ -25,19 +24,23 @@ mod models {
             self.mappings.get(&(from, to))
         }
 
-        pub fn get_seeds_from_list(&self) -> Vec<i64> {
-            self.seeds.clone()
+        pub fn get_seeds_from_list(&self) -> &[i64] {
+            &self.seeds
         }
 
-        pub fn get_locations_for_seeds(&self, seeds: Vec<i64>) -> HashMap<i64, i64> {
-            let mut result = HashMap::new();
-            for seed in seeds {
-                result.insert(seed, self.translate_seed_to_location(seed));
-            }
-            result
+        pub fn get_seeds_from_ranges(&self) -> Vec<i64> {
+            assert!(self.seeds.len() % 2 == 0);
+            self.seeds
+                .chunks(2)
+                .flat_map(|chunk| {
+                    let start = chunk[0];
+                    let end = chunk[0] + chunk[1];
+                    (start..end).collect::<Vec<i64>>()
+                })
+                .collect()
         }
 
-        fn translate_seed_to_location(&self, seed: i64) -> i64 {
+        pub fn translate_seed_to_location(&self, seed: i64) -> i64 {
             let order = [
                 (Category::Seed, Category::Soil),
                 (Category::Soil, Category::Fertilizer),
@@ -52,7 +55,7 @@ mod models {
                 if let Some(mapping) = self.get_mapping(from, to) {
                     result = mapping.transform(result);
                 } else {
-                    panic!("No mapping from {from} to {to}");
+                    panic!("No mapping from {from:?} to {to:?}");
                 }
             }
             result
@@ -70,26 +73,7 @@ mod models {
         Humidity,
         Location,
     }
-    impl fmt::Display for Category {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            write!(f, "{}", self.to_string())
-        }
-    }
     impl Category {
-        fn to_string(&self) -> String {
-            match self {
-                Self::Seed => "seed",
-                Self::Soil => "soil",
-                Self::Fertilizer => "fertilizer",
-                Self::Water => "water",
-                Self::Light => "light",
-                Self::Temperature => "temperature",
-                Self::Humidity => "humidity",
-                Self::Location => "location",
-            }
-            .to_string()
-        }
-
         pub fn from_str(category: &str) -> Self {
             match category {
                 "seed" => Self::Seed,

@@ -4,13 +4,13 @@ use crate::parse;
 
 pub fn process(input: &str) -> miette::Result<String, AocError> {
     let almanac = parse(input)?;
-    let minimum_seed_location = almanac
-        .get_locations_for_seeds(almanac.get_seeds_from_list())
+    let minimum = almanac
+        .get_seeds_from_list()
         .iter()
-        .map(|(_seed, location)| *location)
+        .map(|seed| almanac.translate_seed_to_location(*seed))
         .min()
-        .expect("there to be at least one seed");
-    Ok(minimum_seed_location.to_string())
+        .expect("There to be at least one seed");
+    Ok(minimum.to_string())
 }
 
 #[cfg(test)]
