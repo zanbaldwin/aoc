@@ -7,6 +7,6 @@ fn main() -> miette::Result<()> {
 
     let file = include_str!("../../input.txt");
     let result = process(file).context("Process Part 2");
-    println!("Day 03; Part 2: The result is {}.", result?);
+    println!("Day XX; Part 2: The result is {}.", result?);
     Ok(())
 }
