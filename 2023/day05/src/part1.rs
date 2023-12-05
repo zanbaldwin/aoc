@@ -1,7 +1,16 @@
 use common::AocError;
 
-pub fn process(_input: &str) -> miette::Result<String, AocError> {
-    Err(AocError::from_str("Not yet implemented."))
+use crate::parse;
+
+pub fn process(input: &str) -> miette::Result<String, AocError> {
+    let almanac = parse(input)?;
+    let minimum_seed_location = almanac
+        .get_locations_for_seeds(almanac.get_seeds_from_list())
+        .iter()
+        .map(|(_seed, location)| *location)
+        .min()
+        .expect("there to be at least one seed");
+    Ok(minimum_seed_location.to_string())
 }
 
 #[cfg(test)]
