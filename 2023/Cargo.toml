@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["day*"]
+members = ["common", "day*"]
 exclude = ["day-template"]
 
 [workspace.dependencies]

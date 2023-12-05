@@ -1,13 +1,11 @@
 [package]
-name = "day"
+name = "common"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-common = { path = "../common" }
-tracing = { workspace = true }
-tracing-subscriber = { workspace = true }
 miette = { workspace = true }
 thiserror = { workspace = true }
+nom = { workspace = true }
