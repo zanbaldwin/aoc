@@ -6,6 +6,16 @@ use common::AocError;
 mod models {
     use std::{collections::HashMap, ops::Range};
 
+    const SEED_PROCESS_ORDER: [(Category, Category); 7] = [
+        (Category::Seed, Category::Soil),
+        (Category::Soil, Category::Fertilizer),
+        (Category::Fertilizer, Category::Water),
+        (Category::Water, Category::Light),
+        (Category::Light, Category::Temperature),
+        (Category::Temperature, Category::Humidity),
+        (Category::Humidity, Category::Location),
+    ];
+
     #[derive(Debug)]
     pub(crate) struct Almanac {
         seeds: Vec<i64>,
@@ -28,32 +38,35 @@ mod models {
             &self.seeds
         }
 
-        pub fn get_seeds_from_ranges(&self) -> Vec<i64> {
+        pub fn get_seed_ranges(&self) -> Vec<Range<i64>> {
             assert!(self.seeds.len() % 2 == 0);
             self.seeds
                 .chunks(2)
-                .flat_map(|chunk| {
+                .map(|chunk| {
                     let start = chunk[0];
                     let end = chunk[0] + chunk[1];
-                    (start..end).collect::<Vec<i64>>()
+                    start..end
                 })
                 .collect()
         }
 
         pub fn translate_seed_to_location(&self, seed: i64) -> i64 {
-            let order = [
-                (Category::Seed, Category::Soil),
-                (Category::Soil, Category::Fertilizer),
-                (Category::Fertilizer, Category::Water),
-                (Category::Water, Category::Light),
-                (Category::Light, Category::Temperature),
-                (Category::Temperature, Category::Humidity),
-                (Category::Humidity, Category::Location),
-            ];
             let mut result = seed;
-            for (from, to) in order {
+            for (from, to) in SEED_PROCESS_ORDER {
                 if let Some(mapping) = self.get_mapping(from, to) {
-                    result = mapping.transform(result);
+                    result = mapping.forwards(result);
+                } else {
+                    panic!("No mapping from {from:?} to {to:?}");
+                }
+            }
+            result
+        }
+
+        pub fn translate_location_to_seed(&self, location: i64) -> i64 {
+            let mut result = location;
+            for (from, to) in SEED_PROCESS_ORDER.iter().rev() {
+                if let Some(mapping) = self.get_mapping(*from, *to) {
+                    result = mapping.backwards(result);
                 } else {
                     panic!("No mapping from {from:?} to {to:?}");
                 }
@@ -104,10 +117,19 @@ mod models {
             }
         }
 
-        fn transform(&self, value: i64) -> i64 {
+        fn forwards(&self, value: i64) -> i64 {
             for transformer in &self.transformers {
                 if transformer.range.contains(&value) {
                     return value + transformer.shift;
+                }
+            }
+            value
+        }
+
+        fn backwards(&self, value: i64) -> i64 {
+            for transformer in &self.transformers {
+                if transformer.range.contains(&(value - transformer.shift)) {
+                    return value - transformer.shift;
                 }
             }
             value
