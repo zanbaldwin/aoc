@@ -26,3 +26,9 @@
     ~4billion and exiting as soon as we have a positive result, rather than
     going through all 350billion+ iterations and finding the lowest
   - Total time to calculate answer: ~2.5 seconds
+- Notes
+  - I tried using Rayon to parallelise the iterations across multiple threads
+    but for some reason this almost doubled the execution time (?!). Probably
+    has to do with how Rayon splits the numbers to be checked.
+  - Rayon might have had more of a better impact on performance if I had added
+    before I refactored the solution
