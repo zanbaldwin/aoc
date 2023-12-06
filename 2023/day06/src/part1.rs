@@ -1,9 +1,9 @@
 use common::AocError;
 
-use crate::parse;
+use crate::parse_multiple;
 
 pub fn process(input: &str) -> miette::Result<String, AocError> {
-    let races = parse(input)?;
+    let races = parse_multiple(input)?;
 
     let total: usize = races
         .into_iter()
