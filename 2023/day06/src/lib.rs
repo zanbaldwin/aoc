@@ -1,5 +1,3 @@
-use common::AocError;
-
 pub mod part1;
 pub mod part2;
 
@@ -12,23 +10,12 @@ mod models {
 
     pub(crate) struct Race {
         pub(crate) time: Time,
-        pub(crate) distance_to_beat: Distance,
+        pub(crate) record: Distance,
     }
     impl Race {
-        pub fn new(time: Time, distance_to_beat: Distance) -> Self {
-            Self {
-                time,
-                distance_to_beat,
-            }
-        }
-
         fn distance_after_warmup(&self, warmup: Time) -> bool {
-            let distance = if warmup >= self.time {
-                0
-            } else {
-                warmup * (self.time - warmup)
-            };
-            distance > self.distance_to_beat
+            let distance = warmup * (self.time - warmup);
+            distance > self.record
         }
 
         pub fn get_beating_range(&self) -> Option<RangeInclusive<Time>> {
@@ -57,46 +44,56 @@ mod models {
 
 mod parser {
     use super::models::*;
+    use common::AocError;
     use nom::{
         bytes::complete::tag,
-        character::complete::{line_ending, space1, u64},
+        character::complete::{digit1, line_ending, space1, u64},
         combinator::map,
         multi::separated_list1,
-        sequence::{preceded, separated_pair, terminated, tuple},
+        sequence::{preceded, separated_pair, tuple},
         IResult,
     };
 
-    pub(crate) fn parse_race(input: &str) -> IResult<&str, Race> {
-        map(
+    pub(crate) fn parse_race(input: &str) -> miette::Result<Race, AocError> {
+        fn parse_kerning_numbers<'a>(
+            list_name: &str,
+        ) -> impl FnMut(&'a str) -> IResult<&'a str, u64> + '_ {
+            move |input: &'a str| {
+                map(
+                    preceded(
+                        tuple((tag(list_name), tag(":"), space1)),
+                        separated_list1(space1, digit1),
+                    ),
+                    |digits| digits.join("").parse().unwrap(),
+                )(input)
+            }
+        }
+
+        let parser = map(
             separated_pair(
-                parse_number_list("Time"),
+                parse_kerning_numbers("Time"),
                 line_ending,
-                parse_number_list("Distance"),
+                parse_kerning_numbers("Distance"),
             ),
-            |(times, distances)| {
-                assert_eq!(times.len(), distances.len());
-                Race {
-                    time: times
-                        .iter()
-                        .map(|time| time.to_string())
-                        .collect::<Vec<_>>()
-                        .join("")
-                        .parse()
-                        .unwrap(),
-                    distance_to_beat: distances
-                        .iter()
-                        .map(|distance| distance.to_string())
-                        .collect::<Vec<_>>()
-                        .join("")
-                        .parse()
-                        .unwrap(),
-                }
-            },
-        )(input)
+            |(time, record)| Race { time, record },
+        );
+
+        common::nom(parser, input)
     }
 
-    pub(crate) fn parse_races(input: &str) -> IResult<&str, Vec<Race>> {
-        map(
+    pub(crate) fn parse_races(input: &str) -> miette::Result<Vec<Race>, AocError> {
+        fn parse_number_list<'a>(
+            list_name: &str,
+        ) -> impl FnMut(&'a str) -> IResult<&'a str, Vec<u64>> + '_ {
+            move |input: &'a str| {
+                preceded(
+                    tuple((tag(list_name), tag(":"), space1)),
+                    separated_list1(space1, u64),
+                )(input)
+            }
+        }
+
+        let parser = map(
             separated_pair(
                 parse_number_list("Time"),
                 line_ending,
@@ -107,28 +104,11 @@ mod parser {
                 times
                     .into_iter()
                     .zip(distances)
-                    .map(|(time, distance)| Race::new(time, distance))
+                    .map(|(time, record)| Race { time, record })
                     .collect()
             },
-        )(input)
+        );
+
+        common::nom(parser, input)
     }
-
-    fn parse_number_list<'a>(
-        list_name: &str,
-    ) -> impl FnMut(&'a str) -> IResult<&'a str, Vec<u64>> + '_ {
-        move |input: &'a str| {
-            preceded(
-                terminated(tuple((tag(list_name), tag(":"))), space1),
-                separated_list1(space1, u64),
-            )(input)
-        }
-    }
-}
-
-pub(crate) fn parse_multiple(input: &str) -> miette::Result<Vec<models::Race>, AocError> {
-    common::nom(parser::parse_races, input)
-}
-
-pub(crate) fn parse_single(input: &str) -> miette::Result<models::Race, AocError> {
-    common::nom(parser::parse_race, input)
 }
