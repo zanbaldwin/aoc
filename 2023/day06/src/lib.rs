@@ -66,6 +66,35 @@ mod parser {
         IResult,
     };
 
+    pub(crate) fn parse_race(input: &str) -> IResult<&str, Race> {
+        map(
+            separated_pair(
+                parse_number_list("Time"),
+                line_ending,
+                parse_number_list("Distance"),
+            ),
+            |(times, distances)| {
+                assert_eq!(times.len(), distances.len());
+                Race {
+                    time: times
+                        .iter()
+                        .map(|time| time.to_string())
+                        .collect::<Vec<_>>()
+                        .join("")
+                        .parse()
+                        .unwrap(),
+                    distance_to_beat: distances
+                        .iter()
+                        .map(|distance| distance.to_string())
+                        .collect::<Vec<_>>()
+                        .join("")
+                        .parse()
+                        .unwrap(),
+                }
+            },
+        )(input)
+    }
+
     pub(crate) fn parse_races(input: &str) -> IResult<&str, Vec<Race>> {
         map(
             separated_pair(
@@ -96,6 +125,10 @@ mod parser {
     }
 }
 
-pub(crate) fn parse(input: &str) -> miette::Result<Vec<models::Race>, AocError> {
+pub(crate) fn parse_multiple(input: &str) -> miette::Result<Vec<models::Race>, AocError> {
     common::nom(parser::parse_races, input)
+}
+
+pub(crate) fn parse_single(input: &str) -> miette::Result<models::Race, AocError> {
+    common::nom(parser::parse_race, input)
 }
