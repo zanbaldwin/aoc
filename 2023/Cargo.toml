@@ -13,6 +13,7 @@ rstest = "0.18"
 rstest_reuse = "0.6"
 miette = { version = "5.10", features = ["fancy"] }
 thiserror = "1.0"
+divan = "0.1"
 
 [profile.release]
 opt-level = "z"
