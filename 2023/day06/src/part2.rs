@@ -7,4 +7,11 @@ pub fn process(_input: &str) -> miette::Result<String, AocError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    const DAY06_TEST_INPUT: &str = "Time:      7  15   30\nDistance:  9  40  200";
+
+    #[test]
+    fn test_part2() {
+        assert_eq!("71503", process(DAY06_TEST_INPUT).unwrap());
+    }
 }
