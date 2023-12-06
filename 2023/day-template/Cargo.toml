@@ -11,3 +11,10 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 miette = { workspace = true }
 thiserror = { workspace = true }
+
+[dev-dependencies]
+divan = { workspace = true }
+
+[[bench]]
+name = "bench"
+harness = false
