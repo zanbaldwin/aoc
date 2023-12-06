@@ -1,11 +1,8 @@
-use crate::parse_single;
+use crate::parser::parse_race;
 use common::AocError;
 
 pub fn process(input: &str) -> miette::Result<String, AocError> {
-    let race = parse_single(input)?;
-    // Definitely better ways to find this number than just collecting the range
-    // and counting, but that requires editing other files or refactoring and we
-    // don't do that here.
+    let race = parse_race(input)?;
     let number_of_ways_to_win = race
         .get_beating_range()
         .expect("the race to be winnable")

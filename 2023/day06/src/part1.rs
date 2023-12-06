@@ -1,16 +1,16 @@
 use common::AocError;
 
-use crate::parse_multiple;
+use crate::parser::parse_races;
 
 pub fn process(input: &str) -> miette::Result<String, AocError> {
-    let races = parse_multiple(input)?;
+    let races = parse_races(input)?;
 
     let total: usize = races
         .into_iter()
         .filter_map(|race| race.get_beating_range())
         // `.len()` is not available on Range<u64> because the number could be
-        // larger than what 32bit systems can hold. `.into_iter().count()` is
-        // less efficient but gets the job done just as well.
+        // larger than what 32bit systems can hold. But `.into_iter().count()`
+        // should get the job done just as well.
         .map(|range| range.into_iter().count())
         .product();
 
