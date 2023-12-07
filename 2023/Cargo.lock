@@ -201,7 +201,6 @@ version = "0.1.0"
 dependencies = [
  "common",
  "divan",
- "miette",
  "nom",
  "thiserror",
  "tracing",
