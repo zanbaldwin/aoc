@@ -15,9 +15,10 @@ impl From<&str> for AocError {
     }
 }
 
-pub fn nom<'a, P, O>(mut parser: P, input: &'a str) -> miette::Result<O, AocError>
+pub fn nom<'a, P, O, E>(mut parser: P, input: &'a str) -> miette::Result<O, E>
 where
     P: Parser<&'a str, O, NomError<&'a str>>,
+    E: From<&'static str>,
 {
     match parser.parse(input.trim()) {
         Ok((remaining_input, engine)) => {
