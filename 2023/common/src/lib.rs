@@ -15,7 +15,7 @@ impl From<&str> for AocError {
     }
 }
 
-pub fn nom<'a, P, O, E>(mut parser: P, input: &'a str) -> miette::Result<O, E>
+pub fn nom<'a, P, O, E>(mut parser: P, input: &'a str) -> Result<O, E>
 where
     P: Parser<&'a str, O, NomError<&'a str>>,
     E: From<&'static str>,
@@ -23,7 +23,7 @@ where
     match parser.parse(input.trim()) {
         Ok((remaining_input, engine)) => {
             if !remaining_input.trim().is_empty() {
-                Err("Additional unparsed data at the end of input: {remaining_input}".into())
+                Err("Additional unparsed data at the end of input.".into())
             } else {
                 Ok(engine)
             }
