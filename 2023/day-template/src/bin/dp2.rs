@@ -1,12 +1,10 @@
-use day::part2::process;
-use miette::Context;
+use day::{part2::process, Error};
 
 #[tracing::instrument]
-fn main() -> miette::Result<()> {
+fn main() -> Result<(), Error> {
     tracing_subscriber::fmt::init();
-
     let file = include_str!("../../input.txt");
-    let result = process(file).context("Process Part 2");
-    println!("Day XX; Part 2: The result is {}.", result?);
+    let result = process(file)?;
+    println!("Day XX; Part 2: The result is {result}.");
     Ok(())
 }

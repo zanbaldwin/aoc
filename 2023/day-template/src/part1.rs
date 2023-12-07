@@ -1,7 +1,7 @@
-use common::AocError;
+use crate::Error;
 
-pub fn process(_input: &str) -> miette::Result<String, AocError> {
-    Err("Not yet implemented.".into())
+pub fn process(_input: &str) -> miette::Result<String, Error> {
+    Err(Error::NotYetImplemented)
 }
 
 #[cfg(test)]
