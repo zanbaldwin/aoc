@@ -202,6 +202,7 @@ dependencies = [
  "common",
  "divan",
  "miette",
+ "nom",
  "thiserror",
  "tracing",
  "tracing-subscriber",
