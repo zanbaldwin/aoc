@@ -133,42 +133,15 @@ mod models {
         }
     }
 
-    #[derive(Debug, PartialEq, Eq)]
+    #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
     pub(crate) enum HandType {
-        HighCard(Card),
-        OnePair(Card),
-        TwoPair(Card, Card),
-        ThreeOfAKind(Card),
-        FullHouse(Card, Card),
-        FourOfAKind(Card),
-        FiveOfAKind(Card),
-    }
-    impl HandType {
-        fn order(&self) -> usize {
-            match self {
-                Self::HighCard(_) => 1,
-                Self::OnePair(_) => 2,
-                Self::TwoPair(_, _) => 3,
-                Self::ThreeOfAKind(_) => 4,
-                Self::FullHouse(_, _) => 5,
-                Self::FourOfAKind(_) => 6,
-                Self::FiveOfAKind(_) => 7,
-            }
-        }
-    }
-    // We have to implement our own Ord trait for HandType because otherwise the
-    // default derive macro version will also order by the values inside the
-    // enum variants (and the puzzle specification explicitly tells us to ignore
-    // that).
-    impl Ord for HandType {
-        fn cmp(&self, other: &Self) -> Ordering {
-            self.order().cmp(&other.order())
-        }
-    }
-    impl PartialOrd for HandType {
-        fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-            Some(self.cmp(other))
-        }
+        HighCard,
+        OnePair,
+        TwoPair,
+        ThreeOfAKind,
+        FullHouse,
+        FourOfAKind,
+        FiveOfAKind,
     }
     impl TryFrom<Vec<Card>> for HandType {
         type Error = Error;
@@ -179,74 +152,30 @@ mod models {
             }
 
             Ok(match map.len() {
-                1 => {
-                    // FiveOfAKind (AAAAA).
-                    let any_card = map.keys().last().unwrap();
-                    Self::FiveOfAKind(*any_card)
-                }
+                // FiveOfAKind (AAAAA).
+                1 => Self::FiveOfAKind,
+                // Either FourOfAKind (AAAAB) or FullHouse (AAABB).
                 2 => {
-                    // Either FourOfAKind (AAAAB) or FullHouse (AAABB).
                     if map.iter().any(|(_card, count)| *count == 4) {
                         // FourOfAKind (AAAAB).
-                        let four_cards = map
-                            .iter()
-                            .filter(|(_card, count)| **count == 4)
-                            .map(|(card, _count)| card)
-                            .last()
-                            .unwrap();
-                        Self::FourOfAKind(*four_cards)
+                        Self::FourOfAKind
                     } else {
                         // FullHouse (AAABB).
-                        let three_cards = map
-                            .iter()
-                            .filter(|(_card, count)| **count == 3)
-                            .map(|(card, _count)| card)
-                            .last()
-                            .unwrap();
-                        let two_cards = map
-                            .iter()
-                            .filter(|(_card, count)| **count == 2)
-                            .map(|(card, _count)| card)
-                            .last()
-                            .unwrap();
-                        Self::FullHouse(*three_cards, *two_cards)
+                        Self::FullHouse
                     }
                 }
+                // Either ThreeOfAKind(AAABC) or TwoPair (AABBC).
                 3 => {
-                    // Either ThreeOfAKind(AAABC) or TwoPair (AABBC).
                     if map.iter().any(|(_card, count)| *count == 3) {
-                        let three_cards = map
-                            .iter()
-                            .filter(|(_card, count)| **count == 3)
-                            .map(|(card, _count)| card)
-                            .last()
-                            .unwrap();
-                        Self::ThreeOfAKind(*three_cards)
+                        Self::ThreeOfAKind
                     } else {
-                        let mut two_cards: Vec<Card> = map
-                            .into_iter()
-                            .filter(|(_card, count)| *count == 2)
-                            .map(|(card, _count)| card)
-                            .collect();
-                        two_cards.sort();
-                        Self::TwoPair(two_cards[1], two_cards[0])
+                        Self::TwoPair
                     }
                 }
-                4 => {
-                    // OnePair (AABCD).
-                    let card = map
-                        .into_iter()
-                        .filter(|(_card, count)| *count == 2)
-                        .map(|(card, _count)| card)
-                        .last()
-                        .unwrap();
-                    Self::OnePair(card)
-                }
-                5 => {
-                    // HighCard (ABCDE).
-                    let high_card = map.keys().max().unwrap();
-                    Self::HighCard(*high_card)
-                }
+                // OnePair (AABCD).
+                4 => Self::OnePair,
+                // HighCard (ABCDE).
+                5 => Self::HighCard,
                 n => return Err(Error::WrongNumberOfCards(n)),
             })
         }
@@ -262,7 +191,55 @@ mod models {
                 return HandType::try_from(cards);
             }
 
-            todo!()
+            let joker_count = cards
+                .iter()
+                .filter(|card| *card == &JokeredCard::Jack)
+                .count();
+            if joker_count == 5 {
+                // No further processing required.
+                return Ok(HandType::FiveOfAKind);
+            }
+
+            let remaining_cards: Vec<JokeredCard> = cards
+                .iter()
+                .filter_map(|card| {
+                    if *card != JokeredCard::Jack {
+                        Some(*card)
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+
+            let mut map: HashMap<JokeredCard, usize> = HashMap::new();
+            for remaining_card in remaining_cards {
+                *map.entry(remaining_card).or_insert(0) += 1;
+            }
+            let max_card = map
+                .iter()
+                .max_by(|(a_card, a_count), (b_card, b_count)| {
+                    let count_ord = a_count.cmp(b_count);
+                    if count_ord != Ordering::Equal {
+                        return count_ord;
+                    }
+
+                    a_card.cmp(b_card)
+                })
+                .map(|(card, _count)| *card)
+                .expect("there to always be another card if less than 5 jokers");
+
+            let cards: Vec<Card> = cards
+                .into_iter()
+                .map(|card| -> Card {
+                    if card == JokeredCard::Jack {
+                        max_card.into()
+                    } else {
+                        card.into()
+                    }
+                })
+                .collect();
+
+            HandType::try_from(cards)
         }
     }
 
@@ -285,7 +262,7 @@ mod models {
         fn score(&self, rank: usize) -> usize;
     }
 
-    #[derive(Debug, PartialEq, Eq)]
+    #[derive(Debug, PartialEq, Eq, Clone)]
     pub(crate) struct HandWithoutJokers {
         pub(crate) cards: Vec<Card>,
         pub(crate) hand_type: HandType,
@@ -330,24 +307,20 @@ mod models {
         }
     }
 
-    #[derive(Debug, PartialEq, Eq)]
+    #[derive(Debug, PartialEq, Eq, Clone)]
     pub(crate) struct HandWithJokers {
-        pub(crate) cards: Vec<Card>,
+        pub(crate) cards: Vec<JokeredCard>,
         pub(crate) hand_type: HandType,
         pub(crate) bid: usize,
     }
     impl TryFrom<ParsedHand> for HandWithJokers {
         type Error = Error;
         fn try_from(hand: ParsedHand) -> Result<Self, Self::Error> {
-            let hand_type: HandType = hand
-                .cards
-                .clone()
-                .into_iter()
-                .map(|card| card.into())
-                .collect::<Vec<JokeredCard>>()
-                .try_into()?;
+            let jokered_cards: Vec<JokeredCard> =
+                hand.cards.into_iter().map(|card| card.into()).collect();
+            let hand_type: HandType = jokered_cards.clone().try_into()?;
             Ok(HandWithJokers {
-                cards: hand.cards,
+                cards: jokered_cards,
                 hand_type,
                 bid: hand.bid,
             })
