@@ -1,7 +1,22 @@
-use common::AocError;
+use crate::{
+    models::{Hand, HandWithJokers},
+    parser::parse,
+    Error,
+};
 
-pub fn process(_input: &str) -> miette::Result<String, AocError> {
-    Err("Not yet implemented.".into())
+pub fn process(input: &str) -> Result<String, Error> {
+    let parsed_hands = parse(input)?;
+    let mut hands: Vec<HandWithJokers> = parsed_hands
+        .into_iter()
+        .map(|hand| -> Result<HandWithJokers, Error> { hand.try_into() })
+        .collect::<Result<Vec<_>, Error>>()?;
+    hands.sort();
+    let total: usize = hands
+        .into_iter()
+        .enumerate()
+        .map(|(index, hand)| hand.score(index + 1))
+        .sum();
+    Ok(total.to_string())
 }
 
 #[cfg(test)]

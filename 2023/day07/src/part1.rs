@@ -1,11 +1,17 @@
-use common::AocError;
+use crate::{
+    models::{Hand, HandWithoutJokers},
+    parser::parse,
+    Error,
+};
 
-use crate::parser::parse;
-
-pub fn process(input: &str) -> miette::Result<String, AocError> {
-    let mut hands = parse(input)?;
+pub fn process(input: &str) -> Result<String, Error> {
+    let parsed_hands = parse(input)?;
+    let mut hands: Vec<HandWithoutJokers> = parsed_hands
+        .into_iter()
+        .map(|hand| -> Result<HandWithoutJokers, Error> { hand.try_into() })
+        .collect::<Result<Vec<_>, Error>>()?;
     hands.sort();
-    let total: u64 = hands
+    let total: usize = hands
         .into_iter()
         .enumerate()
         .map(|(index, hand)| hand.score(index + 1))

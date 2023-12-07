@@ -37,7 +37,25 @@ impl Display for HandType {
     }
 }
 
-impl Display for Hand {
+impl Display for HandWithoutJokers {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let cards = self
+            .cards
+            .iter()
+            .map(|card| card.to_string())
+            .collect::<Vec<_>>()
+            .join("");
+        write!(
+            f,
+            "Bidding {:width$} for hand ({}): {}",
+            self.bid,
+            cards,
+            self.hand_type,
+            width = 4,
+        )
+    }
+}
+impl Display for HandWithJokers {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let cards = self
             .cards
