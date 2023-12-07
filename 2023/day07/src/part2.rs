@@ -1,14 +1,14 @@
 use crate::{
-    models::{Hand, HandWithJokers},
+    models::{joker::Hand, HandTrait},
     parser::parse,
     Error,
 };
 
 pub fn process(input: &str) -> Result<String, Error> {
     let parsed_hands = parse(input)?;
-    let mut hands: Vec<HandWithJokers> = parsed_hands
+    let mut hands: Vec<Hand> = parsed_hands
         .into_iter()
-        .map(|hand| -> Result<HandWithJokers, Error> { hand.try_into() })
+        .map(|hand| -> Result<Hand, Error> { hand.try_into() })
         .collect::<Result<Vec<_>, Error>>()?;
     hands.sort();
     let total: usize = hands
