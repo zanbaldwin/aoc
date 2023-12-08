@@ -1,5 +1,6 @@
-// Take from the Wikipedia page for Greatest Common Divisor
-pub fn gcd(a: i64, b: i64) -> i64 {
+// Taken from Wikipedia: Binary GCD Algorithm
+// See https://en.wikipedia.org/wiki/Binary_GCD_algorithm
+fn _gcd_binary(a: i64, b: i64) -> i64 {
     let mut b = b.wrapping_abs() as u32;
     if a == 0 {
         return b as i64;
@@ -22,11 +23,19 @@ pub fn gcd(a: i64, b: i64) -> i64 {
     (a << gcd_exponent_on_two) as i64
 }
 
-pub fn lcm_n(nums: &[i64]) -> i64 {
+fn gcd_recursion(a: usize, b: usize) -> usize {
+    if b == 0 {
+        a
+    } else {
+        gcd_recursion(b, a % b)
+    }
+}
+
+pub fn lcm(nums: &[usize]) -> usize {
     if nums.len() == 1 {
         return nums[0];
     }
     let a = nums[0];
-    let b = lcm_n(&nums[1..]);
-    (a * b) / gcd(a, b)
+    let b = lcm(&nums[1..]);
+    (a * b) / gcd_recursion(a, b)
 }
