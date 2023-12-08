@@ -102,8 +102,7 @@ mod models {
                 .map(|position| self.process(position, |position: &str| position.ends_with("Z")))
                 .collect::<Result<Vec<_>, Error>>()?;
 
-            let lcm: Vec<i64> = lengths.into_iter().map(|length| length as i64).collect();
-            Ok(maths::lcm_n(&lcm) as usize)
+            Ok(maths::lcm(&lengths))
         }
     }
 }
