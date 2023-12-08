@@ -102,6 +102,12 @@ mod models {
                 .map(|position| self.process(position, |position: &str| position.ends_with("Z")))
                 .collect::<Result<Vec<_>, Error>>()?;
 
+            // Lowest Common Multiple works because Eric Wastl is nice and has
+            // coded the inputs to result in separate routes that do not
+            // intersect (each starting position has only one ending position on
+            // its route). If the routes intersected (for example, a figure
+            // eight loop between two of the routes) then LCM simply would not
+            // work.
             Ok(maths::lcm(&lengths))
         }
     }
