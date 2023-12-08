@@ -1,7 +1,6 @@
 use std::fmt;
 
-use parser::parse_collection;
-
+mod maths;
 pub mod part1;
 pub mod part2;
 
@@ -27,7 +26,7 @@ impl fmt::Display for Error {
 }
 
 mod models {
-    use crate::Error;
+    use crate::{maths, Error};
     use std::collections::HashMap;
 
     pub(crate) enum Direction {
@@ -58,13 +57,17 @@ mod models {
         }
     }
 
-    pub(crate) struct Maps<'a> {
+    pub(crate) struct Pouch<'a> {
         pub(crate) sequence: Vec<Direction>,
         pub(crate) maps: HashMap<&'a str, Map<'a>>,
     }
-    impl<'a> Maps<'a> {
-        pub(crate) fn process(&self) -> Result<usize, Error> {
-            let mut position: &str = "AAA";
+    impl<'a> Pouch<'a> {
+        fn process(
+            &self,
+            position: &str,
+            end_checker: impl Fn(&str) -> bool,
+        ) -> Result<usize, Error> {
+            let mut position: &str = position;
             let mut count = 0;
             'logic: loop {
                 for direction in self.sequence.iter() {
@@ -74,12 +77,33 @@ mod models {
                         .get(position)
                         .ok_or(Error::MissingPosition(position.to_string()))?
                         .next(direction);
-                    if position == "ZZZ" {
+                    if end_checker(position) {
                         break 'logic;
                     }
                 }
             }
             Ok(count)
+        }
+
+        pub(crate) fn human(&self) -> Result<usize, Error> {
+            self.process("AAA", |position: &str| position == "ZZZ")
+        }
+
+        pub(crate) fn ghost(&self) -> Result<usize, Error> {
+            let starting_positions: Vec<&str> = self
+                .maps
+                .keys()
+                .filter(|position| position.ends_with("A"))
+                .map(|position| *position)
+                .collect();
+
+            let lengths: Vec<usize> = starting_positions
+                .into_iter()
+                .map(|position| self.process(position, |position: &str| position.ends_with("Z")))
+                .collect::<Result<Vec<_>, Error>>()?;
+
+            let lcm: Vec<i64> = lengths.into_iter().map(|length| length as i64).collect();
+            Ok(maths::lcm_n(&lcm) as usize)
         }
     }
 }
@@ -90,17 +114,17 @@ mod parser {
     use super::models::*;
     use nom::{
         bytes::complete::tag,
-        character::complete::{alpha1, line_ending, one_of, space0, space1},
+        character::complete::{alphanumeric1, line_ending, one_of, space0, space1},
         combinator::{map, map_res},
         multi::{many1, separated_list1},
         sequence::{delimited, separated_pair, tuple},
         IResult,
     };
 
-    pub(crate) fn parse_collection<'a>(input: &'a str) -> IResult<&'a str, Maps<'a>> {
+    pub(crate) fn parse_pouch<'a>(input: &'a str) -> IResult<&'a str, Pouch<'a>> {
         map(
             separated_pair(parse_sequence, many1(line_ending), parse_maps),
-            |(sequence, maps)| Maps { sequence, maps },
+            |(sequence, maps)| Pouch { sequence, maps },
         )(input)
     }
 
@@ -120,11 +144,15 @@ mod parser {
     fn parse_map<'a>(input: &'a str) -> IResult<&'a str, (&'a str, Map<'a>)> {
         map(
             separated_pair(
-                alpha1,
+                alphanumeric1,
                 tuple((space1, tag("="), space1)),
                 delimited(
                     tag("("),
-                    separated_pair(alpha1, tuple((space0, tag(","), space0)), alpha1),
+                    separated_pair(
+                        alphanumeric1,
+                        tuple((space0, tag(","), space0)),
+                        alphanumeric1,
+                    ),
                     tag(")"),
                 ),
             ),
@@ -133,6 +161,6 @@ mod parser {
     }
 }
 
-pub(crate) fn parse<'a>(input: &'a str) -> Result<models::Maps<'a>, Error> {
-    common::nom(parse_collection, input.trim())
+pub(crate) fn parse<'a>(input: &'a str) -> Result<models::Pouch<'a>, Error> {
+    common::nom(parser::parse_pouch, input.trim())
 }

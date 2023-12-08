@@ -1,7 +1,8 @@
-use crate::Error;
+use crate::{parse, Error};
 
-pub fn process(_input: &str) -> miette::Result<String, Error> {
-    Err(Error::NotYetImplemented)
+pub fn process(input: &str) -> Result<String, Error> {
+    let collection = parse(input)?;
+    Ok(collection.ghost()?.to_string())
 }
 
 #[cfg(test)]
@@ -12,7 +13,8 @@ mod tests {
     fn test_part2() {
         assert_eq!(
             "6",
-            "LR
+            process(
+                "LR
 
 11A = (11B, XXX)
 11B = (XXX, 11Z)
@@ -22,6 +24,8 @@ mod tests {
 22C = (22Z, 22Z)
 22Z = (22B, 22B)
 XXX = (XXX, XXX)"
+            )
+            .unwrap()
         );
     }
 }
