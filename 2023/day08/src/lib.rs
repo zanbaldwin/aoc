@@ -141,22 +141,27 @@ mod parser {
     }
 
     fn parse_map<'a>(input: &'a str) -> IResult<&'a str, (&'a str, Map<'a>)> {
-        map(
+        separated_pair(
+            alphanumeric1,
+            tuple((space1, tag("="), space1)),
+            parse_routes,
+        )(input)
+    }
+
+    fn parse_routes<'a>(input: &'a str) -> IResult<&'a str, Map<'a>> {
+        let (remaining, (left, right)) = delimited(
+            tag("("),
             separated_pair(
                 alphanumeric1,
-                tuple((space1, tag("="), space1)),
-                delimited(
-                    tag("("),
-                    separated_pair(
-                        alphanumeric1,
-                        tuple((space0, tag(","), space0)),
-                        alphanumeric1,
-                    ),
-                    tag(")"),
-                ),
+                tuple((space0, tag(","), space0)),
+                alphanumeric1,
             ),
-            |(source, (left, right))| (source, Map { left, right }),
-        )(input)
+            tag(")"),
+        )(input)?;
+        // Doing this to remind myself that not everything has to be one massive
+        // function call. Returned values can be processed in later lines, and I
+        // need to remember to do that more often.
+        Ok((remaining, Map { left, right }))
     }
 }
 
