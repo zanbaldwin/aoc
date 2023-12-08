@@ -1,4 +1,4 @@
-use day::{part1, part2};
+use day08::{part1, part2};
 
 const INPUT: &str = include_str!("../input.txt");
 

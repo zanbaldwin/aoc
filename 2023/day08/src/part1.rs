@@ -2,7 +2,7 @@ use crate::{parse, Error};
 
 pub fn process(input: &str) -> miette::Result<String, Error> {
     let map_collection = parse(input)?;
-    let count = map_collection.process()?;
+    let count = map_collection.human()?;
     Ok(count.to_string())
 }
 
