@@ -23,4 +23,6 @@
     Wikipedia with the standard recursion method I was taught in school
   - Euler's method, I think it's called? I don't know off the top of my head
   - Brain is still too mushy for me to care - it works and I got the star
+  - I must have either copied the implementation wrong, or perhaps it was the
+    conversion between usize and i64?
   - No more for today
