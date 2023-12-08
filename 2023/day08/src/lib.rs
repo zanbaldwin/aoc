@@ -166,5 +166,5 @@ mod parser {
 }
 
 pub(crate) fn parse<'a>(input: &'a str) -> Result<models::Pouch<'a>, Error> {
-    common::nom(parser::parse_pouch, input.trim())
+    common::nom(parser::parse_pouch, input)
 }
