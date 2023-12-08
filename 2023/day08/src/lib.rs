@@ -57,9 +57,10 @@ mod models {
         }
     }
 
+    pub(crate) type MapCollection<'a> = HashMap<&'a str, Map<'a>>;
     pub(crate) struct Pouch<'a> {
         pub(crate) sequence: Vec<Direction>,
-        pub(crate) maps: HashMap<&'a str, Map<'a>>,
+        pub(crate) maps: MapCollection<'a>,
     }
     impl<'a> Pouch<'a> {
         fn process(
@@ -69,17 +70,15 @@ mod models {
         ) -> Result<usize, Error> {
             let mut position: &str = position;
             let mut count = 0;
-            'logic: loop {
-                for direction in self.sequence.iter() {
-                    count += 1;
-                    position = self
-                        .maps
-                        .get(position)
-                        .ok_or(Error::MissingPosition(position.to_string()))?
-                        .next(direction);
-                    if end_checker(position) {
-                        break 'logic;
-                    }
+            for direction in self.sequence.iter().cycle() {
+                count += 1;
+                position = self
+                    .maps
+                    .get(position)
+                    .ok_or(Error::MissingPosition(position.to_string()))?
+                    .next(direction);
+                if end_checker(position) {
+                    break;
                 }
             }
             Ok(count)
@@ -114,8 +113,6 @@ mod models {
 }
 
 mod parser {
-    use std::collections::HashMap;
-
     use super::models::*;
     use nom::{
         bytes::complete::tag,
@@ -137,13 +134,10 @@ mod parser {
         many1(map_res(one_of("LR"), |c| Direction::try_from(c)))(input)
     }
 
-    fn parse_maps<'a>(input: &'a str) -> IResult<&'a str, HashMap<&'a str, Map<'a>>> {
-        let (remaining_input, maps) = separated_list1(line_ending, parse_map)(input)?;
-        let mut collection = HashMap::new();
-        for (source, map) in maps {
-            collection.insert(source, map);
-        }
-        Ok((remaining_input, collection))
+    fn parse_maps<'a>(input: &'a str) -> IResult<&'a str, MapCollection<'a>> {
+        map(separated_list1(line_ending, parse_map), |collection| {
+            collection.into_iter().collect()
+        })(input)
     }
 
     fn parse_map<'a>(input: &'a str) -> IResult<&'a str, (&'a str, Map<'a>)> {
