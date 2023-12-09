@@ -1,10 +1,21 @@
-use crate::error::Error;
+use crate::{error::Error, *};
 
-pub fn process(_input: &str) -> Result<String, Error> {
-    Err(Error::NotYetImplemented)
+pub fn process(input: &str) -> Result<String, Error> {
+    let report = generate_report(input)?;
+    let predictions: Result<Vec<PredictedReading>, Error> = report
+        .iter()
+        .map(|history| history.predict_backwards())
+        .collect();
+    let total: i64 = predictions?.iter().sum();
+    Ok(total.to_string())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_predict1() {
+        assert_eq!(vec![10, 13, 16, 21, 30, 45].predict_backwards().unwrap(), 5);
+    }
 }
