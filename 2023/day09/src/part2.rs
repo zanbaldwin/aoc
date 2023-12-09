@@ -32,4 +32,16 @@ mod tests {
             5
         );
     }
+
+    #[test]
+    fn test_small() {
+        assert_eq!(vec![1, 2, 3].predict(Direction::Forwards).unwrap(), 4);
+        assert_eq!(vec![1, 2].predict(Direction::Forwards).unwrap(), 3);
+        // A single number should just repeat itself.
+        assert_eq!(vec![1].predict(Direction::Forwards).unwrap(), 1);
+        // Numbers all the same should also repeat.
+        assert_eq!(vec![1, 1].predict(Direction::Forwards).unwrap(), 1);
+        // No numbers should error.
+        assert!(vec![].predict(Direction::Forwards).is_err());
+    }
 }
