@@ -1,4 +1,4 @@
-use day::{part2::process, Error};
+use day::{error::Error, part2::process};
 
 #[tracing::instrument]
 fn main() -> Result<(), Error> {
