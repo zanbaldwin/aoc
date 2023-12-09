@@ -1,9 +1,12 @@
-use std::fmt;
+use std::{fmt, num::ParseIntError};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     NotYetImplemented,
     Other(String),
+    InvalidNumber(ParseIntError),
+    NoAlgorithmicSequence,
+    NothingToPredict,
 }
 impl From<&str> for Error {
     fn from(value: &str) -> Self {
