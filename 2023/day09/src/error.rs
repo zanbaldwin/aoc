@@ -6,7 +6,6 @@ pub enum Error {
     Other(String),
     InvalidNumber(ParseIntError),
     NoAlgorithmicSequence,
-    NothingToPredict,
 }
 impl From<&str> for Error {
     fn from(value: &str) -> Self {
