@@ -1,6 +1,6 @@
 use crate::error::Error;
 
-pub fn process(_input: &str) -> Result<String, Error> {
+pub fn process(_input: &str) -> miette::Result<String, Error> {
     Err(Error::NotYetImplemented)
 }
 
