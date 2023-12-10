@@ -14,6 +14,7 @@
 
 ### Part 1
 - `thread 'part1::tests::test_part1_input2' has overflowed its stack`
+- Oh dear
 - Kind of excited
 - Been programming for over a decade, used StackOverflow.com many many times
 - Never had an actual stack overflow error before!
