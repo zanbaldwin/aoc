@@ -5,6 +5,10 @@ pub enum Error {
     NotYetImplemented,
     Other(String),
     InvalidPipeCharacter(char),
+    NoStartingPosition,
+    NoTraversalFound,
+    InvalidCircuit,
+    CellParseError,
 }
 impl From<&str> for Error {
     fn from(value: &str) -> Self {
