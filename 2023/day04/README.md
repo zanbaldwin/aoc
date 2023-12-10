@@ -1,4 +1,4 @@
-# AoC 2023 (Day 03)
+# AoC 2023 (Day 04)
 
 ## Progress Report
 - Part 1
