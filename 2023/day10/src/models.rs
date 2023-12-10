@@ -1,7 +1,7 @@
 use crate::error::Error;
-use std::{collections::HashMap, fmt};
+use std::collections::{BTreeMap, HashMap};
 
-type Position = (usize, usize);
+pub(crate) type Position = (usize, usize);
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub(crate) enum Direction {
@@ -54,20 +54,6 @@ impl TryFrom<char> for Pipe {
         })
     }
 }
-impl fmt::Display for Pipe {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
-        let pipe = match self {
-            Self::Vertical => "|",
-            Self::Horizontal => "-",
-            Self::NorthEast => "L",
-            Self::NorthWest => "J",
-            Self::SouthEast => "F",
-            Self::SouthWest => "7",
-            Self::Start => "S",
-        };
-        write!(f, "{pipe}")
-    }
-}
 
 #[derive(PartialEq, Clone, Copy)]
 pub(crate) struct Cell {
@@ -77,8 +63,8 @@ pub(crate) struct Cell {
 
 #[derive(Debug)]
 pub(crate) struct Map {
-    height: usize,
-    width: usize,
+    pub(crate) height: usize,
+    pub(crate) width: usize,
     pub(crate) tiles: HashMap<Position, Cell>,
     pub(crate) start: Cell,
 }
@@ -87,12 +73,13 @@ impl TryFrom<&str> for Map {
     fn try_from(input: &str) -> Result<Self, Self::Error> {
         let mut tiles = HashMap::new();
         let mut starting_position: Option<Cell> = None;
-        let mut max_position: Option<Position> = None;
+        let height = input.lines().count();
+        let mut width: Option<usize> = None;
         input.trim().lines().enumerate().for_each(|(y, line)| {
+            width.get_or_insert_with(|| line.chars().count());
             line.trim().chars().enumerate().for_each(|(x, c)| {
                 // We're counting "cells" not "points in space", start from (1, 1).
                 let position = (x + 1, y + 1);
-                max_position = Some(position);
                 if let Ok(pipe) = c.try_into() {
                     if pipe == Pipe::Start {
                         starting_position = Some(Cell {
@@ -104,10 +91,9 @@ impl TryFrom<&str> for Map {
                 }
             });
         });
-        let max_position = max_position.ok_or::<Error>("Maximum Boundaries not found.".into())?;
         Ok(Self {
-            width: max_position.0,
-            height: max_position.1,
+            width: width.ok_or::<Error>("Could not determine grid width.".into())?,
+            height,
             tiles,
             start: starting_position.ok_or(Error::NoStartingPosition)?,
         })
@@ -219,20 +205,20 @@ impl Map {
 
 // Part 2
 impl Map {
+    fn circuit_into_btree(circuit: Vec<Cell>) -> BTreeMap<Position, Cell> {
+        circuit
+            .into_iter()
+            .map(|cell| (cell.position, cell))
+            .collect()
+    }
+
     pub(crate) fn num_bounded(&self) -> Result<usize, Error> {
-        let circuit = self.circuit()?;
-
-        let mut valid_loop_cells: HashMap<Position, Cell> = HashMap::new();
-        for cell in circuit.iter() {
-            valid_loop_cells.insert(cell.position, *cell);
-        }
-
+        let circuit = Map::circuit_into_btree(self.circuit()?);
         let mut count = 0;
-
         for y in 1..=self.height {
             for x in 1..=self.width {
                 let position: Position = (x, y);
-                if valid_loop_cells.get(&position).is_none()
+                if circuit.get(&position).is_none()
                     && Map::is_position_bounded_by(position, &circuit)
                 {
                     count += 1;
@@ -242,41 +228,60 @@ impl Map {
         Ok(count)
     }
 
-    pub(crate) fn is_position_bounded_by((pos_x, pos_y): Position, circuit: &[Cell]) -> bool {
-        // If it crosses an odd number of pipe boundaries on its way to the edge
-        // in both directions, then it must be bounded by the looping circuit???
-        let is_left_odd = circuit
+    /// This is the part of my solution that I needed to look
+    pub(crate) fn is_position_bounded_by(
+        (pos_x, pos_y): Position,
+        circuit: &BTreeMap<Position, Cell>,
+    ) -> bool {
+        let bounding_pipes_to_the_left = circuit
             .iter()
-            .filter(|cell| cell.position.0 < pos_x && cell.position.1 == pos_y)
-            .count()
-            % 2
-            > 0;
-        let is_right_odd = circuit
-            .iter()
-            .filter(|cell| cell.position.0 > pos_x && cell.position.1 == pos_y)
-            .count()
-            % 2
-            > 0;
-        let is_above_odd = circuit
-            .iter()
-            .filter(|cell| cell.position.0 == pos_x && cell.position.1 < pos_y)
-            .count()
-            % 2
-            > 0;
-        let is_below_odd = circuit
-            .iter()
-            .filter(|cell| cell.position.0 == pos_x && cell.position.1 > pos_y)
-            .count()
-            % 2
-            > 0;
-        todo!()
+            .filter(|((cell_x, cell_y), _)| cell_x < &pos_x && cell_y == &pos_y);
+        let mut crossings = 0;
+        let mut previous: Option<Pipe> = None;
+        for (_position, cell) in bounding_pipes_to_the_left {
+            let pipe = cell.pipe;
+            match pipe {
+                // Crossing a vertical pipe always results in a crossing.
+                Pipe::Vertical => crossings += 1,
+                // Because we're coming in from the West, all pipes pointing East count as a crossing.
+                Pipe::NorthEast => {
+                    crossings += 1;
+                    previous = Some(Pipe::NorthEast);
+                }
+                Pipe::SouthEast => {
+                    crossings += 1;
+                    previous = Some(Pipe::SouthEast);
+                }
+                // But pipes pointing east only count as another crossing if the
+                // pipe is pointing the same north or south as the previous one.
+                // For example:
+                //   One crossing = ┗━┓ or ┏━┛
+                //   Two crossings = ┏━┓ or ┗━┛
+                Pipe::NorthWest if previous == Some(Pipe::NorthEast) => crossings += 1,
+                Pipe::SouthWest if previous == Some(Pipe::SouthEast) => crossings += 1,
+                _ => (),
+            }
+        }
+
+        // Need an odd number of crossings to be inside the bounding box.
+        crossings % 2 > 0
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rstest::rstest;
 
+    // ...........
+    // .S━━━━━━━┓.
+    // .┃┏━━━━━┓┃.
+    // .┃┃.....┃┃.
+    // .┃┃.....┃┃.
+    // .┃┗━┓.┏━┛┃.
+    // .┃..┃.┃..┃.
+    // .┗━━┛.┗━━┛.
+    // ...........
     const TEST_MAP_1: &str = "...........
 .S-------7.
 .|F-----7|.
@@ -287,6 +292,15 @@ mod tests {
 .L--J.L--J.
 ...........";
 
+    // ..........
+    // .S━━━━━━┓.
+    // .┃┏━━━━┓┃.
+    // .┃┃....┃┃.
+    // .┃┃....┃┃.
+    // .┃┗━┓┏━┛┃.
+    // .┃..┃┃..┃.
+    // .┗━━┛┗━━┛.
+    // ..........
     const TEST_MAP_2: &str = "..........
 .S------7.
 .|F----7|.
@@ -297,36 +311,73 @@ mod tests {
 .L--JL--J.
 ..........";
 
-    #[test]
-    fn num_bounded() {
-        let map: Map = TEST_MAP_1.try_into().unwrap();
-        assert_eq!(4, map.num_bounded().unwrap());
+    // .┏━━━━┓┏┓┏┓┏┓┏━┓....
+    // .┃┏━━┓┃┃┃┃┃┃┃┃┏┛....
+    // .┃┃.┏┛┃┃┃┃┃┃┃┃┗┓....
+    // ┏┛┗┓┗┓┗┛┗┛┃┃┗┛.┗━┓..
+    // ┗━━┛.┗┓...┗┛S┓┏━┓┗┓.
+    // ....┏━┛..┏┓┏┛┃┗┓┗┓┗┓
+    // ....┗┓.┏┓┃┃┗┓┃.┗┓┗┓┃
+    // .....┃┏┛┗┛┃┏┛┃┏┓┃.┗┛
+    // ....┏┛┗━┓.┃┃.┃┃┃┃...
+    // ....┗━━━┛.┗┛.┗┛┗┛...
+    const TEST_MAP_3: &str = ".F----7F7F7F7F-7....
+.|F--7||||||||FJ....
+.||.FJ||||||||L7....
+FJL7L7LJLJ||LJ.L-7..
+L--J.L7...LJS7F-7L7.
+....F-J..F7FJ|L7L7L7
+....L7.F7||L7|.L7L7|
+.....|FJLJ|FJ|F7|.LJ
+....FJL-7.||.||||...
+....L---J.LJ.LJLJ...";
+
+    // ┌┏┓┏S┏┓┏┓┏┓┏┓┏┓┏━━━┓
+    // └┃┗┛┃┃┃┃┃┃┃┃┃┃┃┃┏━━┛
+    // ┌┗━┓┗┛┗┛┃┃┃┃┃┃┗┛┗━┓┐
+    // ┏━━┛┏━━┓┃┃┗┛┗┛┐┏┓┏┛─
+    // ┗━━━┛┏━┛┗┛.││─┏┛┗┛┘┐
+    // │┌│┏━┛┏━━━┓┌┐─┗┓└│┐│
+    // │┌┏┛┏┓┗┓┏━┛┏┓│┘┗━━━┓
+    // ┐─┗━┛┗┓┃┃┏┓┃┗┓┏━┓┏┓┃
+    // └.└┐└┏┛┃┃┃┃┃┏┛┗┓┃┃┗┛
+    // └┐┘└┘┗━┛┗┛┗┛┗━━┛┗┛.└
+    const TEST_MAP_4: &str = "FF7FSF7F7F7F7F7F---7
+L|LJ||||||||||||F--J
+FL-7LJLJ||||||LJL-77
+F--JF--7||LJLJ7F7FJ-
+L---JF-JLJ.||-FJLJJ7
+|F|F-JF---7F7-L7L|7|
+|FFJF7L7F-JF7|JL---7
+7-L-JL7||F7|L7F-7F7|
+L.L7LFJ|||||FJL7||LJ
+L7JLJL-JLJLJL--JLJ.L";
+
+    #[rstest]
+    #[case(TEST_MAP_1, 4)]
+    #[case(TEST_MAP_2, 4)]
+    #[case(TEST_MAP_3, 8)]
+    #[case(TEST_MAP_4, 10)]
+    fn num_bounded(#[case] input: &str, #[case] expected: usize) {
+        let map: Map = input.try_into().unwrap();
+        assert_eq!(expected, map.num_bounded().unwrap());
     }
 
-    #[test]
-    fn num_bounded_no_gap() {
-        let map: Map = TEST_MAP_2.try_into().unwrap();
-        assert_eq!(4, map.num_bounded().unwrap());
-    }
-
-    #[test]
-    fn is_position_bounded_by1() {
-        let map: Map = TEST_MAP_1.try_into().unwrap();
-        let circuit = map.circuit().unwrap();
-        assert!(Map::is_position_bounded_by((3, 7), &circuit));
-    }
-
-    #[test]
-    fn is_position_bounded_by2() {
-        let map: Map = TEST_MAP_1.try_into().unwrap();
-        let circuit = map.circuit().unwrap();
-        assert!(!Map::is_position_bounded_by((1, 1), &circuit));
-    }
-
-    #[test]
-    fn is_position_bounded_by3() {
-        let map: Map = TEST_MAP_1.try_into().unwrap();
-        let circuit = map.circuit().unwrap();
-        assert!(!Map::is_position_bounded_by((4, 3), &circuit));
+    #[rstest]
+    #[case(TEST_MAP_1, (3, 7), true)]
+    #[case(TEST_MAP_1, (1, 1), false)]
+    #[case(TEST_MAP_1, (4, 4), false)]
+    #[case(TEST_MAP_3, (7, 7), true)]
+    #[case(TEST_MAP_3, (8, 5), true)]
+    #[case(TEST_MAP_4, (13, 6), true)]
+    #[case(TEST_MAP_4, (19, 5), false)]
+    fn is_position_bounded_by(
+        #[case] input: &str,
+        #[case] position: Position,
+        #[case] expected: bool,
+    ) {
+        let map: Map = input.try_into().unwrap();
+        let circuit = Map::circuit_into_btree(map.circuit().unwrap());
+        assert_eq!(expected, Map::is_position_bounded_by(position, &circuit));
     }
 }
