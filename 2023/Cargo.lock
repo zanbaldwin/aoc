@@ -237,6 +237,7 @@ version = "0.1.0"
 dependencies = [
  "common",
  "divan",
+ "rstest",
  "thiserror",
  "tracing",
  "tracing-subscriber",
