@@ -7,8 +7,8 @@ pub enum Error {
     InvalidPipeCharacter(char),
     NoStartingPosition,
     NoTraversalFound,
-    InvalidCircuit,
     CellParseError,
+    NoBoundaries,
 }
 impl From<&str> for Error {
     fn from(value: &str) -> Self {
