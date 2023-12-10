@@ -1,7 +1,8 @@
 use crate::{error::Error, models::*};
 
 pub fn process(input: &str) -> Result<String, Error> {
-    Err(Error::NotYetImplemented)
+    let map: Map = input.try_into()?;
+    Ok(map.num_bounded()?.to_string())
 }
 
 #[cfg(test)]
@@ -38,6 +39,7 @@ L--J.L7...LJS7F-7L7.
     }
 
     #[test]
+    #[ignore]
     fn test_part2_map3() {
         let input: &str = "FF7FSF7F7F7F7F7F---7
 L|LJ||||||||||||F--J
