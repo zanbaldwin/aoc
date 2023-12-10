@@ -51,3 +51,4 @@
 - But guess what? _Not today,_ ~~Eric Wastl~~ _Satan_.
 - Also, I need to stop throwing all of the logic in with the models, it's so
   object-orientated of me
+- I didn't use [nom](https://docs.rs/nom/latest/nom/) today!
