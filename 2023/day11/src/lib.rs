@@ -6,10 +6,7 @@ pub mod part2;
 pub(crate) mod models {
     use crate::error::Error;
     use itertools::Itertools;
-    use std::{
-        cmp::{max, min},
-        collections::BTreeMap,
-    };
+    use std::collections::BTreeMap;
 
     #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Default)]
     pub(crate) struct Position {
@@ -18,15 +15,7 @@ pub(crate) mod models {
     }
     impl Position {
         fn distance_from(&self, other: Self) -> usize {
-            let max_x = max(self.x, other.x);
-            let min_x = min(self.x, other.x);
-            let delta_x = max_x - min_x;
-
-            let max_y = max(self.y, other.y);
-            let min_y = min(self.y, other.y);
-            let delta_y = max_y - min_y;
-
-            delta_x + delta_y
+            self.x.abs_diff(other.x) + self.y.abs_diff(other.y)
         }
     }
 
