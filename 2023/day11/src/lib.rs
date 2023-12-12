@@ -1,4 +1,4 @@
-mod debug;
+mod display;
 pub mod error;
 pub mod part1;
 pub mod part2;
@@ -26,8 +26,7 @@ pub(crate) mod models {
             let min_y = min(self.y, other.y);
             let delta_y = max_y - min_y;
 
-            let distance = delta_x + delta_y;
-            distance
+            delta_x + delta_y
         }
     }
 
@@ -51,7 +50,11 @@ pub(crate) mod models {
         pub(crate) columns: Vec<usize>,
     }
     impl<'a> Spacing<'a> {
-        pub(crate) fn expand(&self, growth: usize) -> Universe {
+        pub(crate) fn expand(&self, exponential: usize) -> Universe {
+            // Exponential is how many times wider the gap between galaxies
+            // should be. So, starting from single lines, doubling (2) should
+            // add 1 line and tripling (3) should add 2 more lines.
+            let growth = exponential.saturating_sub(1);
             let mut width = self.universe.width;
             let mut height = self.universe.height;
             let mut galaxies = self.universe.galaxies.clone();
@@ -151,7 +154,7 @@ pub(crate) mod models {
     impl Universe {
         pub(crate) fn measure(&self) -> Spacing {
             Spacing {
-                universe: &self,
+                universe: self,
                 rows: (1..=self.height)
                     .filter(|line| {
                         self.galaxies
@@ -249,7 +252,7 @@ pub(crate) mod models {
         #[test]
         fn test_expanded_universe() {
             let universe: Universe = TEST_UNIVERSE.try_into().unwrap();
-            let expanded = universe.measure().expand(1);
+            let expanded = universe.measure().expand(2);
             let expected_universe: &str = "
 ....#........
 .........#...
@@ -270,7 +273,7 @@ pub(crate) mod models {
         #[test]
         fn test_distances_calculated() {
             let universe: Universe = TEST_UNIVERSE.try_into().unwrap();
-            let expanded = universe.measure().expand(1);
+            let expanded = universe.measure().expand(2);
             let distances = expanded.distances();
 
             let num_galaxies = expanded.galaxies.len();
@@ -292,7 +295,7 @@ pub(crate) mod models {
         #[case((8, 9), 5)]
         fn test_distance_between_galaxies(#[case] pair: (usize, usize), #[case] expected: usize) {
             let universe: Universe = TEST_UNIVERSE.try_into().unwrap();
-            let expanded = universe.measure().expand(1);
+            let expanded = universe.measure().expand(2);
             let distances = expanded.distances();
             assert_eq!(&expected, distances.get(&(pair.0, pair.1)).unwrap());
         }
