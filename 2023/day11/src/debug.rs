@@ -1,49 +1,67 @@
-use super::*;
-use crate::part1::{Galaxy, Position};
+use crate::models::{Galaxy, Position, Spacing, Universe};
 use std::{collections::BTreeMap, fmt::Display};
 
 impl Display for Galaxy {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let Galaxy {
             id,
-            position: (x, y),
+            position: Position { x, y },
             ..
         } = self;
         write!(f, "Galaxy: #{id} ({x}, {y})",)
     }
 }
 
-pub(crate) fn print_galaxies(galaxies: &[Galaxy]) {
-    let galaxy_btree: BTreeMap<Position, Galaxy> = galaxies
-        .iter()
-        .map(|galaxy| (galaxy.position, *galaxy))
-        .collect();
-    let width: usize = galaxies
-        .iter()
-        .map(
-            |Galaxy {
-                 position: (x, _y), ..
-             }| *x,
-        )
-        .max()
-        .unwrap_or(0);
-    let height: usize = galaxies
-        .iter()
-        .map(
-            |Galaxy {
-                 position: (_x, y), ..
-             }| *y,
-        )
-        .max()
-        .unwrap_or(0);
+impl Display for Universe {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let galaxies: BTreeMap<Position, bool> = self
+            .galaxies
+            .iter()
+            .map(|galaxy| (galaxy.position, true))
+            .collect();
+        let mut result = String::new();
+        for y in 1..=self.height {
+            for x in 1..=self.width {
+                if galaxies.contains_key(&Position { x, y }) {
+                    result.push('#');
+                } else {
+                    result.push('.');
+                }
+            }
+            result.push('\n');
+        }
+        write!(f, "{result}")
+    }
+}
 
-    for y in 1..=height {
-        for x in 1..=width {
-            match galaxy_btree.get(&(x, y)) {
-                Some(_) => print!("#"),
-                None => print!("."),
+impl<'a> Display for Spacing<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut result =
+            String::with_capacity((self.universe.width + 2) * (self.universe.height + 1));
+        let mut top = String::new();
+        for column in 0..=self.universe.width {
+            if self.columns.contains(&column) {
+                top.push('v');
+            } else {
+                top.push(' ');
             }
         }
-        println!();
+        result.push_str(top.trim_end());
+        result.push('\n');
+        let universe = format!("{}", self.universe);
+        universe
+            .trim()
+            .lines()
+            .enumerate()
+            .for_each(|(index, line)| {
+                if self.rows.contains(&(index + 1)) {
+                    result.push('>');
+                } else {
+                    result.push(' ');
+                }
+                result.push_str(line);
+                result.push('\n');
+            });
+        write!(f, "{result}")
     }
 }
