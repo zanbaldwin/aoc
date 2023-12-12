@@ -1,5 +1,5 @@
 use crate::models::{Galaxy, Position, Spacing, Universe};
-use std::{collections::BTreeMap, fmt::Display};
+use std::{collections::BTreeSet, fmt::Display};
 
 impl Display for Galaxy {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -14,15 +14,12 @@ impl Display for Galaxy {
 
 impl Display for Universe {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let galaxies: BTreeMap<Position, bool> = self
-            .galaxies
-            .iter()
-            .map(|galaxy| (galaxy.position, true))
-            .collect();
+        let galaxies: BTreeSet<Position> =
+            self.galaxies.iter().map(|galaxy| galaxy.position).collect();
         let mut result = String::new();
         for y in 1..=self.height {
             for x in 1..=self.width {
-                if galaxies.contains_key(&Position { x, y }) {
+                if galaxies.contains(&Position { x, y }) {
                     result.push('#');
                 } else {
                     result.push('.');
