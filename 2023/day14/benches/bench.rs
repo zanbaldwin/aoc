@@ -13,5 +13,5 @@ fn part1() {
 
 #[divan::bench]
 fn part2() {
-    part2::process(divan::black_box(INPUT)).unwrap();
+    part2::process(divan::black_box(INPUT), 1_000_000_000).unwrap();
 }
