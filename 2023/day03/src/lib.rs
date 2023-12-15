@@ -1,14 +1,13 @@
 use aoc_error::AocError;
-use parser::parse;
 use serde::Serialize;
 use std::{
     cmp::{max, min},
-    ffi::{c_char, CStr, CString},
     io::{Error, ErrorKind},
 };
 
 pub mod aoc_error;
 mod display;
+mod ffi;
 mod parser;
 pub mod part1;
 pub mod part2;
@@ -35,18 +34,6 @@ impl<'a> Chunk<'a> {
             Self::Symbol(_) => 1,
         }
     }
-}
-
-// Exporting Functions for use in FFI
-
-#[no_mangle]
-pub extern "C" fn parse_engine_to_json(input: *const c_char) -> *const c_char {
-    let input = unsafe { CStr::from_ptr(input) }.to_str().unwrap();
-    let engine: EngineMap = parse(input)
-        .expect("Engine input could not be parsed.")
-        .into();
-    let json = serde_json::to_string(&engine).unwrap();
-    CString::new(json).unwrap().into_raw()
 }
 
 // Structures for Mapping Positions of Engine Parts
