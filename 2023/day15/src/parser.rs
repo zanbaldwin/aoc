@@ -1,9 +1,14 @@
-use crate::models::{Instruction, Step};
+use std::num::ParseIntError;
+
+use crate::{
+    error::Error,
+    models::{Instruction, Step},
+};
 use nom::{
     branch::alt,
     bytes::complete::{tag, take},
     character::complete::{alpha1, digit1},
-    combinator::map,
+    combinator::{map, map_res},
     sequence::tuple,
     IResult,
 };
@@ -26,7 +31,7 @@ use nom::{
 /// - `ot=7`
 ///
 /// [`Step`]: crate::models::Step
-pub fn parse_step(input: &str) -> IResult<&str, Step> {
+pub fn parse_step(input: &str) -> IResult<&str, Step, Error> {
     map(
         tuple((alpha1, parse_instruction)),
         |(label, instruction)| Step { label, instruction },
@@ -44,28 +49,15 @@ pub fn parse_step(input: &str) -> IResult<&str, Step> {
 /// - `=3`
 ///
 /// [`Instruction`]: crate::models::Instruction
-pub fn parse_instruction(input: &str) -> IResult<&str, Instruction> {
-    let (remaining, (instruction, focal_length)) =
-        alt((tuple((tag("-"), take(0usize))), tuple((tag("="), digit1))))(input)?;
-
-    let instruction = match instruction {
-        "=" => {
-            let focal_length = match focal_length.parse() {
-                Ok(fl) => fl,
-                Err(_) => {
-                    // Can't figure out how to get custom error types working in Nom :(
-                    // return Err(make_error(input, ErrorKind::Digit)),
-                    panic!("Could not parse focal length.");
-                }
-            };
-            Instruction::Insert(focal_length)
-        }
-        "-" => Instruction::Remove,
-        _ => {
-            // return make_error(input, ErrorKind::NoneOf),
-            panic!("Invalid instruction.");
-        }
-    };
-
-    Ok((remaining, instruction))
+pub fn parse_instruction(input: &str) -> IResult<&str, Instruction, Error> {
+    map_res(
+        alt((tuple((tag("-"), take(0usize))), tuple((tag("="), digit1)))),
+        |(instruction, focal_point)| -> Result<Instruction, ParseIntError> {
+            match instruction {
+                "=" => Ok(Instruction::Insert(focal_point.parse()?)),
+                "-" => Ok(Instruction::Remove),
+                _ => unreachable!(),
+            }
+        },
+    )(input)
 }

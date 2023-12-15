@@ -3,7 +3,7 @@ use crate::{error::Error, hash_sum};
 /// Process
 ///
 /// Process the input, and provide an answer for Day 15 Part 1.
-pub fn process(input: &str) -> Result<String, Error<&str>> {
+pub fn process(input: &str) -> Result<String, Error> {
     Ok(hash_sum(input.trim()).to_string())
 }
 
