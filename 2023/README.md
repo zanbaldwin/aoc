@@ -5,5 +5,5 @@ written in [Rust](https://www.rust-lang.org/) and organised into a
 [Cargo workspace](https://doc.rust-lang.org/book/ch14-03-cargo-workspaces.html).
 
 The solutions to each day's problems are attempted initially. When a solution
-cannot be found independently, I first look for inspiration (and memes) and
+cannot be found independently, I first look for inspiration (and memes) and then
 possible answers at [/r/adventofcode](https://www.reddit.com/r/adventofcode/).
