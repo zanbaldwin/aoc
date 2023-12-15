@@ -20,9 +20,8 @@ pub(crate) trait Spin {
 }
 
 pub(crate) mod models {
-    use fasthash::{spooky::Hash64, RandomState};
-
     use crate::{error::Error, Spin, Tilt, TiltDirection};
+    use fasthash::{spooky::Hash64, RandomState};
     use std::{
         collections::{BTreeMap, HashMap},
         hash::Hash,
