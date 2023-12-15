@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod display;
+pub(crate) mod display;
 pub mod error;
 pub mod part1;
 pub mod part2;
@@ -16,11 +16,17 @@ pub(crate) trait Tilt {
 
 pub(crate) trait Spin {
     fn spin(&mut self, times: usize);
+    fn turbo(&mut self, iterations: usize) -> bool;
 }
 
 pub(crate) mod models {
+    use fasthash::{spooky::Hash64, RandomState};
+
     use crate::{error::Error, Spin, Tilt, TiltDirection};
-    use std::collections::BTreeMap;
+    use std::{
+        collections::{BTreeMap, HashMap},
+        hash::Hash,
+    };
 
     #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Copy, Clone, Hash)]
     pub(crate) struct Position {
@@ -28,13 +34,13 @@ pub(crate) mod models {
         pub(crate) y: usize,
     }
 
-    #[derive(Debug, Copy, Clone, PartialEq)]
+    #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
     pub(crate) enum Rock {
         Sphere,
         Cube,
     }
 
-    #[derive(Debug, Clone, PartialEq)]
+    #[derive(Debug, Clone, PartialEq, Eq)]
     pub(crate) struct Platform {
         pub(crate) width: usize,
         pub(crate) height: usize,
@@ -167,6 +173,42 @@ pub(crate) mod models {
             ];
             (1..=times).for_each(|_| spin.iter().for_each(|direction| self.tilt(direction)));
         }
+
+        /// Turbo Mode!
+        ///
+        /// For spinning the platform an amount of times that would not take a
+        /// reasonable amount of time (eg, 1 billion) then Turbo It!™
+        ///
+        /// Look, we all know that Eric chose 1 billion just to make sure we
+        /// don't use a bruteforce approach. Look for a repeating pattern within
+        /// a reasonable timeframe (which, depending on the number of iterations
+        /// chosen, may still be an unreasonable amount of time).
+        fn turbo(&mut self, iterations: usize) -> bool {
+            // Change hashing algortihm: we don't care about being
+            // cryptographically secure, nor do we care about HashDoS while
+            // we're generating an answer. Change to something FAST!
+            let mut spins = HashMap::with_hasher(RandomState::<Hash64>::new());
+            // Kinda similar to checking if a number is prime, don't bother
+            // checking for solutions greater than the square root of the number
+            // you're looking for.
+            for i in 1..=((iterations as f64).sqrt().floor() as usize) {
+                self.spin(1);
+                let state = self.clone();
+                let matches: &mut Vec<usize> = spins.entry(state).or_default();
+                if let Some(last) = matches.iter().last() {
+                    // Pattern repeats every delta spins of the platform.
+                    let delta = i - last;
+                    // So, starting from the last time this pattern happened,
+                    // will an integer number of deltas land on the iteration
+                    // we're looking for?
+                    if (iterations - last) % (delta) == 0 {
+                        return true;
+                    }
+                }
+                matches.push(i);
+            }
+            false
+        }
     }
     impl Platform {
         pub(crate) fn total_load(&self) -> usize {
@@ -177,6 +219,11 @@ pub(crate) mod models {
                     (*y as i32 - (self.height as i32 + 1)).unsigned_abs() as usize
                 })
                 .sum()
+        }
+    }
+    impl Hash for Platform {
+        fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+            self.rocks.hash(state)
         }
     }
 

@@ -6,6 +6,7 @@ pub enum Error {
     Other(String),
     CouldNotDeterminePlatformWidth,
     CouldNotParsePosition,
+    NoSolutionInNormalTime,
 }
 impl From<&str> for Error {
     fn from(value: &str) -> Self {
