@@ -294,7 +294,7 @@ version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77f3c37609833a14a598385904bd43c79724964bc4b0a3339968da85bec4e1e4"
 dependencies = [
- "cfg-if",
+ "cfg-if 1.0.0",
  "clap",
  "condtype",
  "divan-macros",
