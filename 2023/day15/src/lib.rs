@@ -6,8 +6,10 @@
 //! ```
 //! use day15::part1::process;
 //!
-//! let my_input = fetch_user_input().unwrap();
-//! let answer: String = process(my_input);
+//! // Replace this with your own input.
+//! // @see https://adventofcode.com/2023/day/15
+//! let my_input = include_str!("../input.txt");
+//! let answer: String = process(my_input).unwrap();
 //!
 //! println!("Answer to Day 15 (Part 1) is: {answer}");
 //! ```
