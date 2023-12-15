@@ -19,7 +19,6 @@
 
 use error::Error;
 use models::Step;
-use nom::combinator::complete;
 
 pub mod error;
 pub mod models;
@@ -58,8 +57,8 @@ pub fn hash_sum(input: &str) -> u32 {
 /// model.
 ///
 /// [`Step`]: crate::models::Step
-pub fn parse(input: &str) -> Result<Step, Error<&str>> {
-    common::nom(complete(parser::parse_step), input)
+pub fn parse(input: &str) -> Result<Step, Error> {
+    common::nom_custom(parser::parse_step, input)
 }
 
 #[cfg(test)]

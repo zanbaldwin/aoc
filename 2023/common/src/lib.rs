@@ -1,5 +1,9 @@
 use miette::Diagnostic;
-use nom::{error::Error as NomError, Parser};
+use nom::{
+    combinator::complete,
+    error::{Error as NomError, ParseError},
+    Err as NomErr, Parser,
+};
 use std::io::{Error as IoError, ErrorKind};
 use thiserror::Error as ThisError;
 
@@ -15,19 +19,43 @@ impl From<&str> for AocError {
     }
 }
 
-pub fn nom<'a, P, O, E>(mut parser: P, input: &'a str) -> Result<O, E>
+/// Apply Nom parser to input string and return a result.
+///
+/// This function is to be used when using Nom's built-in error: when your
+/// parsers return `IResult<I, O>`.
+pub fn nom<'input, P, O, E>(parser: P, input: &'input str) -> Result<O, E>
 where
-    P: Parser<&'a str, O, NomError<&'a str>>,
+    P: Parser<&'input str, O, NomError<&'input str>>,
     E: From<&'static str>,
 {
-    match parser.parse(input.trim()) {
-        Ok((remaining_input, engine)) => {
-            if !remaining_input.trim().is_empty() {
-                Err("Additional unparsed data at the end of input.".into())
-            } else {
-                Ok(engine)
-            }
+    return match complete(parser).parse(input.trim()) {
+        Ok((_, result)) => Ok(result),
+        Err(_status) => {
+            // We need a way on constructing an error from within this function
+            // without stating the exact type. Best I can think up with for now
+            // is just to construct it from a string (meaning that it needs to
+            // implement `From<&str>`).
+            Err("Input could not be correctly parsed.".into())
         }
-        Err(_) => Err("Input could not be correctly parsed.".into()),
+    };
+}
+
+/// Apply Nom parser to input string and return a result using a custom error
+///
+/// This function is to be used when using a custom Error enum/struct: when your
+/// parsers return `IResult<I, O, E>`.
+pub fn nom_custom<'input, P, O, E>(parser: P, input: &'input str) -> Result<O, E>
+where
+    P: Parser<&'input str, O, E>,
+    E: ParseError<&'input str>,
+{
+    match complete(parser).parse(input.trim()) {
+        Ok((_, result)) => Ok(result),
+        Err(status) => match status {
+            NomErr::Failure(e) | NomErr::Error(e) => Err(e),
+            // The parser was wrapped in a `complete` parser, so there should
+            // never be an Incomplete variant.
+            NomErr::Incomplete(_) => unreachable!(),
+        },
     }
 }
