@@ -11,6 +11,7 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 thiserror = { workspace = true }
 nom = { workspace = true }
+fasthash = "0.4"
 
 [dev-dependencies]
 divan = { workspace = true }

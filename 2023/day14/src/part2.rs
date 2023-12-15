@@ -1,9 +1,12 @@
 use crate::{error::Error, models::Platform, Spin};
-
-pub fn process(input: &str) -> Result<String, Error> {
+pub fn process(input: &str, iterations: usize) -> Result<String, Error> {
     let mut platform: Platform = input.trim().try_into()?;
-    platform.spin(1_000);
-    Ok(platform.total_load().to_string())
+
+    if platform.turbo(iterations) {
+        return Ok(platform.total_load().to_string());
+    }
+
+    Err(Error::NoSolutionInNormalTime)
 }
 
 #[cfg(test)]
@@ -24,9 +27,7 @@ O.#..O.#.#
 
     #[test]
     fn test_part2() {
-        let mut platform: Platform = TEST_INPUT.try_into().unwrap();
-        platform.spin(1_000);
-        assert_eq!("64", platform.total_load().to_string());
+        assert_eq!("64", process(TEST_INPUT, 1_000_000_000).unwrap());
     }
 
     const ONE_SPIN: &str = "
