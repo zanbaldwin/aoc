@@ -71,13 +71,13 @@ pub struct Boxes<'a> {
     boxes: BTreeMap<u8, LensBox<'a>>,
 }
 impl<'a> TryFrom<&'a str> for Boxes<'a> {
-    type Error = Error<&'a str>;
+    type Error = Error;
     fn try_from(input: &'a str) -> Result<Self, Self::Error> {
         let mut boxes: BTreeMap<u8, LensBox<'a>> = BTreeMap::new();
         input
             .split(',')
             .enumerate()
-            .try_for_each(|(i, step)| -> Result<(), Error<&str>> {
+            .try_for_each(|(i, step)| -> Result<(), Error> {
                 let step = parse(step)?;
                 let hash = reindeer_hash(step.label);
                 let lens_box = boxes.entry(hash as u8).or_default();
@@ -130,7 +130,6 @@ impl<'a> Boxes<'a> {
         let mut focusing_powers: BTreeMap<&'a str, u32> = BTreeMap::new();
 
         (0..=u8::MAX)
-            .into_iter()
             .filter_map(|box_number| {
                 Some((
                     box_number,
