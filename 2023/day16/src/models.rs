@@ -19,7 +19,7 @@ impl Position {
 /// can't tell the difference between east and west. Just stick to left and
 /// right for today.
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
-enum Direction {
+pub(crate) enum Direction {
     Up,
     Down,
     Left,
@@ -111,15 +111,15 @@ impl TryFrom<&str> for Contraption {
                 tiles.insert(position, tile);
             }
         }
-        Ok(Contraption::new(
+        Contraption::new(
             width.ok_or(Error::CouldNotDetermineContraptionWidth)?,
             height,
             tiles,
-        ))
+        )
     }
 }
 impl Contraption {
-    fn new(width: usize, height: usize, tiles: BTreeMap<Position, Tile>) -> Self {
+    fn new(width: usize, height: usize, tiles: BTreeMap<Position, Tile>) -> Result<Self, Error> {
         let mut contraption = Self {
             width,
             height,
@@ -127,8 +127,8 @@ impl Contraption {
             beams: Default::default(),
             energized: Default::default(),
         };
-        contraption.initialize();
-        contraption
+        contraption.initialize(Position { x: 1, y: 1 }, Direction::Right)?;
+        Ok(contraption)
     }
 
     /// Repeating Beam?
@@ -152,19 +152,36 @@ impl Contraption {
         (self.width * self.height * 4) + 1
     }
 
-    fn initialize(&mut self) {
+    pub(crate) fn initialize(
+        &mut self,
+        position: Position,
+        direction: Direction,
+    ) -> Result<(), Error> {
+        if position.x > self.width
+            && position.y > self.height
+            && match direction {
+                Direction::Up => position.y != self.height,
+                Direction::Down => position.y != 1,
+                Direction::Left => position.x != self.width,
+                Direction::Right => position.x != 1,
+            }
+        {
+            return Err(Error::InvalidStartingPositionOrDirection);
+        }
+
         self.energized.clear();
         self.beams = vec![Beam {
-            position: Position { x: 1, y: 1 },
-            direction: Direction::Right,
+            position,
+            direction,
         }];
+        Ok(())
     }
 
     pub(crate) fn complete(&self) -> bool {
         self.beams.is_empty()
     }
 
-    fn get_max_position(&self) -> Position {
+    pub(crate) fn get_dimensions(&self) -> Position {
         Position {
             x: self.width,
             y: self.height,
@@ -173,7 +190,7 @@ impl Contraption {
 
     pub(crate) fn step(&mut self) {
         use Direction::*;
-        let max_position = self.get_max_position();
+        let dimensions = self.get_dimensions();
         let mut new_beams: Vec<Beam> = Vec::new();
         for beam in self.beams.iter_mut() {
             self.energized
@@ -224,7 +241,7 @@ impl Contraption {
             .iter()
             .enumerate()
             .filter(|(_index, beam)| {
-                beam.position.is_out_of_bounds(&max_position) || self.is_beam_repeating(beam)
+                beam.position.is_out_of_bounds(&dimensions) || self.is_beam_repeating(beam)
             })
             .map(|(index, _beam)| index)
             // Reverse the list of indexes to remove: if we remove from the
@@ -237,10 +254,11 @@ impl Contraption {
         });
     }
 
-    pub(crate) fn energized_tiles(&self) -> Vec<&Position> {
-        self.energized.keys().collect()
+    pub(crate) fn num_energized_tiles(&self) -> usize {
+        self.energized.len()
     }
 
+    #[cfg(debug_assertions)]
     fn beams_at_position(&self, position: &Position) -> Vec<&Beam> {
         self.beams
             .iter()
@@ -258,8 +276,8 @@ mod tests {
     #[test]
     fn test_max_position() {
         let contraption = Contraption::try_from(TEST_INPUT).unwrap();
-        assert_eq!(10, contraption.get_max_position().x);
-        assert_eq!(10, contraption.get_max_position().y);
+        assert_eq!(10, contraption.get_dimensions().x);
+        assert_eq!(10, contraption.get_dimensions().y);
     }
 
     #[test]
@@ -269,9 +287,9 @@ mod tests {
         // After 10 steps, the light should have energized 11 tiles. It hits two
         // splitters (but one of them immediately falls off the map).
         (1..=10).for_each(|_| contraption.step());
-        assert_eq!(11, contraption.energized_tiles().len());
+        assert_eq!(11, contraption.num_energized_tiles());
         // After another 10 steps, the light should have energized 25 tiles.
         (1..=10).for_each(|_| contraption.step());
-        assert_eq!(25, contraption.energized_tiles().len());
+        assert_eq!(25, contraption.num_energized_tiles());
     }
 }
