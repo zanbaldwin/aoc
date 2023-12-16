@@ -74,10 +74,7 @@ impl Beam {
             Direction::Left => position.x -= 1,
             Direction::Right => position.x += 1,
         }
-        Self {
-            position,
-            direction,
-        }
+        Self { position, direction }
     }
 }
 
@@ -111,11 +108,7 @@ impl TryFrom<&str> for Contraption {
                 tiles.insert(position, tile);
             }
         }
-        Contraption::new(
-            width.ok_or(Error::CouldNotDetermineContraptionWidth)?,
-            height,
-            tiles,
-        )
+        Contraption::new(width.ok_or(Error::CouldNotDetermineContraptionWidth)?, height, tiles)
     }
 }
 impl Contraption {
@@ -152,11 +145,7 @@ impl Contraption {
         (self.width * self.height * 4) + 1
     }
 
-    pub(crate) fn initialize(
-        &mut self,
-        position: Position,
-        direction: Direction,
-    ) -> Result<(), Error> {
+    pub(crate) fn initialize(&mut self, position: Position, direction: Direction) -> Result<(), Error> {
         if position.x > self.width
             && position.y > self.height
             && match direction {
@@ -170,10 +159,7 @@ impl Contraption {
         }
 
         self.energized.clear();
-        self.beams = vec![Beam {
-            position,
-            direction,
-        }];
+        self.beams = vec![Beam { position, direction }];
         Ok(())
     }
 
@@ -193,10 +179,7 @@ impl Contraption {
         let dimensions = self.get_dimensions();
         let mut new_beams: Vec<Beam> = Vec::new();
         for beam in self.beams.iter_mut() {
-            self.energized
-                .entry(beam.position)
-                .or_default()
-                .push(beam.direction.clone());
+            self.energized.entry(beam.position).or_default().push(beam.direction.clone());
             if let Some(tile) = self.tiles.get(&beam.position) {
                 match tile {
                     Tile::Mirror(mirror) => match mirror {
@@ -219,13 +202,13 @@ impl Contraption {
                             new_beams.push(beam.split(Right));
                             // Discard original off to side to be cleaned up.
                             beam.position = Position { x: 0, y: 0 };
-                        }
+                        },
                         Splitter::Vertical if beam.direction.is_horizontal() => {
                             new_beams.push(beam.split(Up));
                             new_beams.push(beam.split(Down));
                             // Discard original off to side to be cleaned up.
                             beam.position = Position { x: 0, y: 0 };
-                        }
+                        },
                         _ => beam.push(None),
                     },
                 }
@@ -240,9 +223,7 @@ impl Contraption {
             .beams
             .iter()
             .enumerate()
-            .filter(|(_index, beam)| {
-                beam.position.is_out_of_bounds(&dimensions) || self.is_beam_repeating(beam)
-            })
+            .filter(|(_index, beam)| beam.position.is_out_of_bounds(&dimensions) || self.is_beam_repeating(beam))
             .map(|(index, _beam)| index)
             // Reverse the list of indexes to remove: if we remove from the
             // beginning of the vector then the indexes after it are going to
@@ -260,10 +241,7 @@ impl Contraption {
 
     #[cfg(debug_assertions)]
     fn beams_at_position(&self, position: &Position) -> Vec<&Beam> {
-        self.beams
-            .iter()
-            .filter(|beam| &beam.position == position)
-            .collect::<Vec<_>>()
+        self.beams.iter().filter(|beam| &beam.position == position).collect::<Vec<_>>()
     }
 }
 

@@ -5,10 +5,7 @@ use std::collections::BTreeMap;
 
 fn list_all_starting_points(contraption: &Contraption) -> Vec<(Position, Direction)> {
     use crate::models::Direction::*;
-    let Position {
-        x: width,
-        y: height,
-    } = contraption.get_dimensions();
+    let Position { x: width, y: height } = contraption.get_dimensions();
     let mut starting_points = Vec::with_capacity((width * 2) + (height * 2));
     (1..=width).for_each(|x| {
         starting_points.push((Position { x, y: 1 }, Down));
