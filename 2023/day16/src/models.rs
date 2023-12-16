@@ -35,21 +35,25 @@ impl Direction {
     }
 }
 
+#[derive(Clone)]
 enum Splitter {
     Horizontal,
     Vertical,
 }
 
+#[derive(Clone)]
 enum Mirror {
     ForwardSlash,
     BackSlash,
 }
 
+#[derive(Clone)]
 enum Tile {
     Mirror(Mirror),
     Splitter(Splitter),
 }
 
+#[derive(Clone)]
 struct Beam {
     position: Position,
     direction: Direction,
@@ -78,6 +82,7 @@ impl Beam {
     }
 }
 
+#[derive(Clone)]
 pub(crate) struct Contraption {
     width: usize,
     height: usize,
@@ -168,10 +173,7 @@ impl Contraption {
     }
 
     pub(crate) fn get_dimensions(&self) -> Position {
-        Position {
-            x: self.width,
-            y: self.height,
-        }
+        Position { x: self.width, y: self.height }
     }
 
     pub(crate) fn step(&mut self) {
@@ -223,7 +225,9 @@ impl Contraption {
             .beams
             .iter()
             .enumerate()
-            .filter(|(_index, beam)| beam.position.is_out_of_bounds(&dimensions) || self.is_beam_repeating(beam))
+            .filter(|(_index, beam)| {
+                beam.position.is_out_of_bounds(&dimensions) || self.is_beam_repeating(beam)
+            })
             .map(|(index, _beam)| index)
             // Reverse the list of indexes to remove: if we remove from the
             // beginning of the vector then the indexes after it are going to
