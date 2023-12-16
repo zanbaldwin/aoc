@@ -1,15 +1,11 @@
+use crate::energize;
 use crate::error::Error;
 use crate::models::Contraption;
 
 pub fn process(input: &str) -> Result<String, Error> {
     let mut contraption: Contraption = input.try_into()?;
-    for _ in 1..=contraption.get_max_iterations() {
-        if contraption.complete() {
-            return Ok(contraption.energized_tiles().len().to_string());
-        }
-        contraption.step();
-    }
-    Err(Error::InfiniteLoop)
+    let num_energized_tiles = energize(&mut contraption)?;
+    Ok(num_energized_tiles.to_string())
 }
 
 #[cfg(test)]
