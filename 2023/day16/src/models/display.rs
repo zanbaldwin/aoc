@@ -1,8 +1,7 @@
+use crate::models::*;
 use std::fmt::{Display, Formatter};
 
-use crate::models::*;
-
-trait ToChar {
+pub(crate) trait ToChar {
     fn to_char(&self) -> char;
 }
 impl ToChar for Tile {
