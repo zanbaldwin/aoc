@@ -1,7 +1,7 @@
 use crate::energize;
 use crate::error::Error;
 use crate::models::{Contraption, Direction, Position};
-use std::collections::BTreeMap;
+use rayon::prelude::*;
 
 fn list_all_starting_points(contraption: &Contraption) -> Vec<(Position, Direction)> {
     use crate::models::Direction::*;
@@ -19,17 +19,20 @@ fn list_all_starting_points(contraption: &Contraption) -> Vec<(Position, Directi
 }
 
 pub fn process(input: &str) -> Result<String, Error> {
-    let mut energy_levels: BTreeMap<(Position, Direction), usize> = BTreeMap::new();
-    let mut contraption: Contraption = input.try_into()?;
+    let contraption: Contraption = input.try_into()?;
     let starting_points = list_all_starting_points(&contraption);
-    for start in starting_points {
-        let (position, direction) = start.clone();
-        contraption.initialize(position, direction)?;
-        energy_levels.insert(start, energize(&mut contraption)?);
-    }
+    let energy_levels: Vec<usize> = starting_points
+        .par_iter()
+        .filter_map(|start: &(Position, Direction)| -> Option<usize> {
+            let mut contraption = contraption.clone();
+            let (position, direction) = start.clone();
+            contraption.initialize(position, direction).ok()?;
+            Some(energize(&mut contraption).ok()?)
+        })
+        .collect();
     // There will always be an energy level of at one 1 because the
     // minimum size of the contraption is (1,1). Unwrap is fine.
-    Ok(energy_levels.values().max().unwrap().to_string())
+    Ok(energy_levels.iter().max().unwrap().to_string())
 }
 
 #[cfg(test)]
