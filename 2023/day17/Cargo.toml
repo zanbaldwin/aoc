@@ -1,0 +1,21 @@
+[package]
+name = "day17"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+common = { path = "../common" }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+thiserror = { workspace = true }
+pathfinding = "4.6"
+
+[dev-dependencies]
+divan = { workspace = true }
+rstest = { workspace = true }
+
+[[bench]]
+name = "bench"
+harness = false
