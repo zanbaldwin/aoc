@@ -1,10 +1,23 @@
 use crate::error::Error;
 use crate::models::City;
+use pathfinding::prelude::astar;
 
 pub fn process(input: &str) -> Result<String, Error> {
-    let mut map = City::try_from(input)?.map_bottom_right();
-    let temperature_loss = map.find_path()?.get_temperature_loss();
-    Ok(temperature_loss.to_string())
+    let map = City::try_from(input)?.map_bottom_right();
+
+    let Some((_edges_taken, total_temperature_loss)) = astar(
+        &map.start()?,
+        |edge| map.get_edges(edge).into_iter().map(|edge| {
+            let cost = edge.get_cost();
+            (edge.clone(), cost)
+        }).collect::<Vec<_>>(),
+        |edge| map.get_heuristic(edge),
+        |edge| map.is_complete(edge),
+    ) else {
+        return Err(Error::ExhaustiveSearch);
+    };
+
+    Ok(total_temperature_loss.to_string())
 }
 
 #[cfg(test)]

@@ -1,12 +1,13 @@
 use std::cmp::Ordering;
-use std::collections::{BTreeMap, BinaryHeap};
+use std::collections::BTreeMap;
+use std::hash::{Hash, Hasher};
 use std::ops::Deref;
 
 use crate::error::Error;
 
-mod display;
+pub(crate) mod display;
 
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub(crate) struct Position {
     x: usize,
     y: usize,
@@ -49,6 +50,12 @@ impl Deref for Block {
 impl PartialEq for Block {
     fn eq(&self, other: &Self) -> bool {
         self.position == other.position
+    }
+}
+impl Hash for Block {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.position.hash(state);
+        self.temperature_loss.hash(state);
     }
 }
 
@@ -115,48 +122,47 @@ impl City {
 }
 
 #[derive(Eq, Clone, Debug)]
-struct Edge {
-    from: Block,
-    to: Block,
-    travel_cost: usize,
+pub(crate) struct Edge {
+    from: Position,
+    to: Position,
     temperature_loss: usize,
-    paths: Vec<Edge>,
+    previous: Vec<Position>,
 }
 impl Edge {
-    fn travel_cost(&self) -> usize {
-        let previous: usize = self.paths.iter().map(|edge| edge.travel_cost).sum();
-        self.travel_cost + previous
+    pub(crate) fn get_cost(&self) -> usize {
+        self.temperature_loss
     }
 
     fn cant_go_forward(&self) -> Option<Position> {
-        if self.paths.len() < 2 {
+        if self.previous.len() < 3 {
             return None;
         }
-        let mut three = vec![self];
-        self.paths.iter().rev().take(2).for_each(|edge| three.push(edge));
-        let three: Vec<Position> = three.into_iter().map(|edge| edge.to.position).collect();
 
-        let one_ago = three.first().unwrap();
-        let three_ago = three.last().unwrap();
+        // Grab the current, plus the previous 3 (4 positions in total).
+        let mut check_path = vec![self.to];
+        self.previous.iter().rev().take(3).for_each(|position| check_path.push(*position));
+
+        let one_before = check_path.first().unwrap();
+        let last = check_path.last().unwrap();
 
         // In the Y direction:
-        if three.windows(2).all(|w| w[0].x == w[1].x) {
+        if check_path.windows(2).all(|w| w[0].x == w[1].x) {
             Some(Position::new(
-                one_ago.x,
-                match one_ago.y.cmp(&three_ago.y) {
-                    Ordering::Greater => one_ago.y + 1,
-                    Ordering::Less => one_ago.y - 1,
+                one_before.x,
+                match one_before.y.cmp(&last.y) {
+                    Ordering::Greater => one_before.y + 1,
+                    Ordering::Less => one_before.y - 1,
                     Ordering::Equal => unreachable!(),
                 },
             ))
-        } else if three.windows(2).all(|w| w[0].y == w[1].y) {
+        } else if check_path.windows(2).all(|w| w[0].y == w[1].y) {
             Some(Position::new(
-                match one_ago.x.cmp(&three_ago.x) {
-                    Ordering::Greater => one_ago.x + 1,
-                    Ordering::Less => one_ago.x - 1,
+                match one_before.x.cmp(&last.x) {
+                    Ordering::Greater => one_before.x + 1,
+                    Ordering::Less => one_before.x - 1,
                     Ordering::Equal => unreachable!(),
                 },
-                one_ago.y,
+                one_before.y,
             ))
         } else {
             None
@@ -165,17 +171,13 @@ impl Edge {
 }
 impl PartialEq for Edge {
     fn eq(&self, other: &Self) -> bool {
-        self.from.position.eq(&other.from.position) && self.to.position.eq(&other.to.position)
+        self.from.eq(&other.from) && self.to.eq(&other.to)
     }
 }
-impl PartialOrd for Edge {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-impl Ord for Edge {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.travel_cost().cmp(&other.travel_cost())
+impl Hash for Edge {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.from.hash(state);
+        self.to.hash(state);
     }
 }
 
@@ -203,15 +205,26 @@ impl Map {
             None => unreachable!(),
         };
         Ok(Edge {
-            from: block.clone(),
-            to: block.clone(),
-            travel_cost: 0,
+            from: block.position,
+            to: block.position,
             temperature_loss: 0,
-            paths: Default::default(),
+            previous: Default::default(),
         })
     }
 
-    fn get_edges(&self, edge: &Edge) -> Vec<Edge> {
+    pub(crate) fn get_heuristic(&self, edge: &Edge) -> usize {
+        edge.to.manhatten(&self.finish)
+    }
+
+    pub(crate) fn start(&self) -> Result<Edge, Error> {
+        self.start_edge(self.start)
+    }
+
+    pub(crate) fn is_complete(&self, edge: &Edge) -> bool {
+        edge.to == self.finish
+    }
+
+    pub(crate) fn get_edges(&self, edge: &Edge) -> Vec<Edge> {
         let banned_position = edge.cant_go_forward();
         // Hopefully the CPU's branch predictor will automatically optimize out
         // the conditional filter down below if this value is already in the stack.
@@ -221,95 +234,42 @@ impl Map {
         // out if I don't type-hint `neighbouring_blocks` _even though it still
         // compiles fine_.
         let neighbouring_blocks: Vec<&Block> = self.city
-            .get_neighbouring_blocks(&edge.to.position)
+            .get_neighbouring_blocks(&edge.to)
             // If there was an error fetching neighbouring blocks it means we're
             // out of bounds of the city. Return empty vector.
             .unwrap_or_else(|_| Vec::new());
         neighbouring_blocks
             .into_iter()
             // Filter out any blocks that have already been traversed.
-            .filter(|block| edge.paths.iter().all(|edge| edge.to.position != block.position))
+            .filter(|block| edge.previous.iter().all(|position| position != &block.position))
             // If the crucible has been travelling for three straight blocks in
             // a row, disallow the next block in front.
             .filter(|block| !should_additional_filter || block.position != banned_position.unwrap())
-            .inspect(|block| println!("{:?}", block.position))
             .filter_map(|block| self.get_edge(edge, &block.position).ok())
             .collect()
     }
 
     fn get_edge(&self, edge: &Edge, to: &Position) -> Result<Edge, Error> {
-        let from = &edge.to.position;
         if to.is_out_of_bounds(&(self.city.width, self.city.height).into()) {
             return Err(Error::InvalidCityBlock);
         }
-        let from_block = match self.city.blocks.get(from) {
+        let block = match self.city.blocks.get(to) {
             Some(block) => block,
             None => unreachable!(),
         };
-        let to_block = match self.city.blocks.get(to) {
-            Some(block) => block,
-            None => unreachable!(),
-        };
-        let temperature_loss = to_block.temperature_loss;
         // Because we're working in unit-length blocks, the potential differential
         // will always be ±1. Plus we're making the assumption that the input will
         // always have a temperature loss of greater than zero. Must be sure that we
         // never have negative travel costs (that is, the potential differential of
         // each edge must not be greater than the temperature loss of the "to" block.
-        let travel_cost = if from_block.position.manhatten(from) < to_block.position.manhatten(to) {
-            temperature_loss + 1
-        } else {
-            temperature_loss - 1
-        };
-        let mut paths = edge.paths.clone();
-        paths.push(edge.clone());
+        let mut previous = edge.previous.clone();
+        previous.push(edge.to);
         Ok(Edge {
-            from: from_block.clone(),
-            to: to_block.clone(),
-            travel_cost,
-            temperature_loss,
-            paths,
+            from: edge.to,
+            to: *to,
+            temperature_loss: block.temperature_loss,
+            previous,
         })
-    }
-
-    pub(crate) fn find_path(&mut self) -> Result<Path, Error> {
-        let start = self.start_edge(self.start)?;
-        let mut binary_heap = BinaryHeap::new();
-        binary_heap.push(start);
-        while let Some(visit) = binary_heap.pop() {
-            for edge in self.get_edges(&visit) {
-                if edge.to.position == self.finish {
-                    return Ok(Path::new(edge.clone()));
-                }
-                binary_heap.push(edge);
-            }
-        }
-
-        Err(Error::ExhaustiveSearch)
-    }
-}
-
-pub(crate) struct Path {
-    steps: Vec<Edge>,
-}
-impl Path {
-    fn new(edge: Edge) -> Path {
-        let mut steps = edge.paths.clone();
-        steps.push(edge);
-        Path { steps }
-    }
-
-    fn get_travel_cost(&self) -> usize {
-        self.steps.iter().map(|edge| edge.travel_cost).sum()
-    }
-
-    pub(crate) fn get_distance(&self) -> usize {
-        // We inserted a "start edge" to begin, take that away from the total.
-        self.steps.len() - 1
-    }
-
-    pub(crate) fn get_temperature_loss(&self) -> usize {
-        self.steps.iter().map(|edge| edge.temperature_loss).sum()
     }
 }
 
@@ -327,18 +287,17 @@ mod tests {
         edge.expect("At least two positions must be passed")
     }
 
-    fn make_edge(from: Position, to: Position, previous: Option<Edge>) -> Edge {
-        let mut paths: Vec<Edge> = Vec::new();
-        if let Some(previous) = previous {
-            paths = previous.paths.clone();
-            paths.push(previous);
+    fn make_edge(from: Position, to: Position, before: Option<Edge>) -> Edge {
+        let mut previous: Vec<Position> = Vec::new();
+        if let Some(before) = before {
+            previous = before.previous.clone();
+            previous.push(before.to);
         }
         Edge {
-            from: Block { position: from, temperature_loss: 1 },
-            to: Block { position: to, temperature_loss: 1 },
-            travel_cost: 1,
+            from,
+            to,
             temperature_loss: 1,
-            paths,
+            previous,
         }
     }
 
@@ -398,12 +357,12 @@ mod tests {
         #[case] expected: &[(usize, usize)],
     ) {
         let edge = make_edge_path(path_taken);
-        assert_eq!(edge.to.position, path_taken.last().map(Position::from).unwrap());
+        assert_eq!(edge.to, path_taken.last().map(Position::from).unwrap());
         let possible_positions_to_move_to = make_city(5)
             .map_bottom_right()
             .get_edges(&edge)
             .into_iter()
-            .map(|edge| edge.to.position)
+            .map(|edge| edge.to)
             .collect::<Vec<_>>();
         expected.iter().map(Position::from).for_each(|position| {
             assert!(possible_positions_to_move_to.contains(&position));
