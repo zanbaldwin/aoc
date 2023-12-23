@@ -19,8 +19,8 @@ jobs:
                   command: "rustup component add clippy rustfmt"
             - run:
                   working_directory: "2023/"
-                  name: Build
-                  command: "cargo build --verbose"
+                  name: "Coding Style"
+                  command: "cargo fmt --check"
             - run:
                   working_directory: "2023/"
                   name: "Test"
@@ -29,10 +29,6 @@ jobs:
                   working_directory: "2023/"
                   name: "Clippy"
                   command: "cargo clippy"
-            - run:
-                  working_directory: "2023/"
-                  name: "Coding Style"
-                  command: "cargo fmt --check"
 
 # Orchestrate jobs using workflows
 # See: https://circleci.com/docs/configuration-reference/#workflows
