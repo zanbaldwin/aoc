@@ -30,8 +30,7 @@ mod tests {
         println!("{expanded}");
         let total: usize = expanded
             .distances()
-            .into_iter()
-            .map(|(_, distance)| distance)
+            .into_values()
             .sum();
         assert_eq!(1030, total);
     }
@@ -42,8 +41,7 @@ mod tests {
         let expanded = universe.measure().expand(100);
         let total: usize = expanded
             .distances()
-            .into_iter()
-            .map(|(_, distance)| distance)
+            .into_values()
             .sum();
         assert_eq!(8410, total);
     }

@@ -14,7 +14,7 @@ pub fn process(input: &str) -> miette::Result<String, AocError> {
                 let mut result: Option<char> = None;
                 'found: for (i, word) in words.iter().enumerate() {
                     if check_line.starts_with(word) {
-                        result = Some((i + 1).to_string().chars().nth(0).unwrap());
+                        result = Some((i + 1).to_string().chars().next().unwrap());
                         break 'found;
                     }
                 }

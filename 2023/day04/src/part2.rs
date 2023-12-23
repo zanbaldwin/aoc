@@ -7,16 +7,16 @@ pub fn process(input: &str) -> miette::Result<String, AocError> {
     let mut tally: HashMap<u32, u32> = HashMap::new();
 
     for scratchcard in scratchcards {
-        let count_of_current_card = tally.entry(scratchcard.id()).or_insert(1).clone();
+        let count_of_current_card = *tally.entry(scratchcard.id()).or_insert(1);
         let num_matches_of_current_card = scratchcard.num_matches();
         for i in 1..=num_matches_of_current_card {
             let copy_number = scratchcard.id() + i;
             let copy_count = tally.entry(copy_number).or_insert(1);
-            *copy_count = *copy_count + count_of_current_card;
+            *copy_count += count_of_current_card;
         }
     }
 
-    let total_cards: u32 = tally.iter().map(|(_card_number, count)| *count).sum();
+    let total_cards: u32 = tally.values().copied().sum();
     Ok(total_cards.to_string())
 }
 

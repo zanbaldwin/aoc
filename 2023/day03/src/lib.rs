@@ -39,8 +39,10 @@ impl<'a> Chunk<'a> {
 
 // Exporting Functions for use in FFI
 
+/// # Safety
+/// This is unsafe. Because C is unsafe.
 #[no_mangle]
-pub extern "C" fn parse_engine_to_json(input: *const c_char) -> *const c_char {
+pub unsafe extern "C" fn parse_engine_to_json(input: *const c_char) -> *const c_char {
     let input = unsafe { CStr::from_ptr(input) }.to_str().unwrap();
     let engine: EngineMap = parse(input)
         .expect("Engine input could not be parsed.")

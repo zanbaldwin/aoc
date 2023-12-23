@@ -6,7 +6,6 @@ pub fn process(input: &str) -> miette::Result<String, AocError> {
     let number_of_ways_to_win = race
         .get_beating_range()
         .expect("the race to be winnable")
-        .into_iter()
         .count();
     Ok(number_of_ways_to_win.to_string())
 }

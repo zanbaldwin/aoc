@@ -27,7 +27,7 @@ pub fn process(input: &str) -> Result<String, Error> {
             let mut contraption = contraption.clone();
             let (position, direction) = start.clone();
             contraption.initialize(position, direction).ok()?;
-            Some(energize(&mut contraption).ok()?)
+            energize(&mut contraption).ok()
         })
         .collect();
     // There will always be an energy level of at one 1 because the

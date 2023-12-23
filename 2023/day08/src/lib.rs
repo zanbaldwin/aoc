@@ -92,13 +92,13 @@ mod models {
             let starting_positions: Vec<&str> = self
                 .maps
                 .keys()
-                .filter(|position| position.ends_with("A"))
-                .map(|position| *position)
+                .filter(|position| position.ends_with('A'))
+                .cloned()
                 .collect();
 
             let lengths: Vec<usize> = starting_positions
                 .into_iter()
-                .map(|position| self.process(position, |position: &str| position.ends_with("Z")))
+                .map(|position| self.process(position, |position: &str| position.ends_with('Z')))
                 .collect::<Result<Vec<_>, Error>>()?;
 
             // Lowest Common Multiple works because Eric Wastl is nice and has
@@ -123,7 +123,7 @@ mod parser {
         IResult,
     };
 
-    pub(crate) fn parse_pouch<'a>(input: &'a str) -> IResult<&'a str, Pouch<'a>> {
+    pub(crate) fn parse_pouch(input: &str) -> IResult<&str, Pouch<'_>> {
         map(
             separated_pair(parse_sequence, many1(line_ending), parse_maps),
             |(sequence, maps)| Pouch { sequence, maps },
@@ -131,16 +131,16 @@ mod parser {
     }
 
     fn parse_sequence(input: &str) -> IResult<&str, Vec<Direction>> {
-        many1(map_res(one_of("LR"), |c| Direction::try_from(c)))(input)
+        many1(map_res(one_of("LR"), Direction::try_from))(input)
     }
 
-    fn parse_maps<'a>(input: &'a str) -> IResult<&'a str, MapCollection<'a>> {
+    fn parse_maps(input: &str) -> IResult<&str, MapCollection<'_>> {
         map(separated_list1(line_ending, parse_map), |collection| {
             collection.into_iter().collect()
         })(input)
     }
 
-    fn parse_map<'a>(input: &'a str) -> IResult<&'a str, (&'a str, Map<'a>)> {
+    fn parse_map(input: &str) -> IResult<&str, (&str, Map<'_>)> {
         separated_pair(
             alphanumeric1,
             tuple((space1, tag("="), space1)),
@@ -148,7 +148,7 @@ mod parser {
         )(input)
     }
 
-    fn parse_routes<'a>(input: &'a str) -> IResult<&'a str, Map<'a>> {
+    fn parse_routes(input: &str) -> IResult<&str, Map<'_>> {
         let (remaining, (left, right)) = delimited(
             tag("("),
             separated_pair(
@@ -165,6 +165,6 @@ mod parser {
     }
 }
 
-pub(crate) fn parse<'a>(input: &'a str) -> Result<models::Pouch<'a>, Error> {
+pub(crate) fn parse(input: &str) -> Result<models::Pouch<'_>, Error> {
     common::nom(parser::parse_pouch, input)
 }
