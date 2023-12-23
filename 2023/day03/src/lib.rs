@@ -44,9 +44,7 @@ impl<'a> Chunk<'a> {
 #[no_mangle]
 pub unsafe extern "C" fn parse_engine_to_json(input: *const c_char) -> *const c_char {
     let input = unsafe { CStr::from_ptr(input) }.to_str().unwrap();
-    let engine: EngineMap = parse(input)
-        .expect("Engine input could not be parsed.")
-        .into();
+    let engine: EngineMap = parse(input).expect("Engine input could not be parsed.").into();
     let json = serde_json::to_string(&engine).unwrap();
     CString::new(json).unwrap().into_raw()
 }
@@ -82,9 +80,7 @@ struct PartNumber {
 impl PartNumber {
     pub fn from_str(part: &str, x: usize, y: usize) -> Self {
         Self {
-            id: part
-                .parse()
-                .expect("Part constructed with malformed ID number."),
+            id: part.parse().expect("Part constructed with malformed ID number."),
             length: part.len(),
             coord: Coord { x, y },
         }
@@ -124,10 +120,7 @@ impl From<Engine<'_>> for EngineMap {
                 if let Chunk::PartNumber(number) = chunk {
                     parts.push(PartNumber::from_str(number, x, y));
                 } else if let Chunk::Symbol(symbol) = chunk {
-                    symbols.push(Symbol {
-                        symbol: *symbol,
-                        coord: Coord { x, y },
-                    })
+                    symbols.push(Symbol { symbol: *symbol, coord: Coord { x, y } })
                 }
                 x += chunk.len();
             }
@@ -145,10 +138,7 @@ impl<'a> EngineMap {
     }
 
     fn get_adjacent_parts(&self, symbol: &Symbol) -> Vec<&PartNumber> {
-        self.parts
-            .iter()
-            .filter(|part| part.neighbours(symbol))
-            .collect()
+        self.parts.iter().filter(|part| part.neighbours(symbol)).collect()
     }
 
     fn get_gears(&'a self) -> Vec<Gear<'a>> {

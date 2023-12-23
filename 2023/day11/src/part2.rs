@@ -28,10 +28,7 @@ mod tests {
         let universe: Universe = GALACTICAL_MAP.try_into().unwrap();
         let expanded = universe.measure().expand(10);
         println!("{expanded}");
-        let total: usize = expanded
-            .distances()
-            .into_values()
-            .sum();
+        let total: usize = expanded.distances().into_values().sum();
         assert_eq!(1030, total);
     }
 
@@ -39,10 +36,7 @@ mod tests {
     fn test_part1_hundred() {
         let universe: Universe = GALACTICAL_MAP.try_into().unwrap();
         let expanded = universe.measure().expand(100);
-        let total: usize = expanded
-            .distances()
-            .into_values()
-            .sum();
+        let total: usize = expanded.distances().into_values().sum();
         assert_eq!(8410, total);
     }
 }

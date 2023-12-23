@@ -3,10 +3,7 @@ use common::AocError;
 
 pub fn process(input: &str) -> miette::Result<String, AocError> {
     let race = parse_race(input)?;
-    let number_of_ways_to_win = race
-        .get_beating_range()
-        .expect("the race to be winnable")
-        .count();
+    let number_of_ways_to_win = race.get_beating_range().expect("the race to be winnable").count();
     Ok(number_of_ways_to_win.to_string())
 }
 

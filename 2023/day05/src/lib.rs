@@ -167,11 +167,7 @@ mod parser {
 
     fn parse_heading(input: &str) -> IResult<&str, (Category, Category)> {
         terminated(
-            separated_pair(
-                map(alpha1, Category::from_str),
-                tag("-to-"),
-                map(alpha1, Category::from_str),
-            ),
+            separated_pair(map(alpha1, Category::from_str), tag("-to-"), map(alpha1, Category::from_str)),
             tuple((space1, tag("map:"))),
         )(input)
     }
@@ -179,18 +175,16 @@ mod parser {
     fn parse_transformers(input: &str) -> IResult<&str, Vec<Transformer>> {
         separated_list1(
             line_ending,
-            map(
-                tuple((i64, space1, i64, space1, i64)),
-                |(destination, _, source, _, length)| Transformer::new(destination, source, length),
-            ),
+            map(tuple((i64, space1, i64, space1, i64)), |(destination, _, source, _, length)| {
+                Transformer::new(destination, source, length)
+            }),
         )(input)
     }
 
     fn parse_mapping(input: &str) -> IResult<&str, Mapping> {
-        map(
-            separated_pair(parse_heading, line_ending, parse_transformers),
-            |(heading, transformers)| Mapping::new(heading, transformers),
-        )(input)
+        map(separated_pair(parse_heading, line_ending, parse_transformers), |(heading, transformers)| {
+            Mapping::new(heading, transformers)
+        })(input)
     }
 
     fn parse_mappings(input: &str) -> IResult<&str, Vec<Mapping>> {
@@ -200,10 +194,9 @@ mod parser {
 
     pub(crate) fn parse_almanac(input: &str) -> IResult<&str, Almanac> {
         let multiline_break = tuple((line_ending, many1(line_ending)));
-        map(
-            tuple((parse_seeds, multiline_break, parse_mappings)),
-            |(seeds, _, mappings)| Almanac::new(seeds, mappings),
-        )(input)
+        map(tuple((parse_seeds, multiline_break, parse_mappings)), |(seeds, _, mappings)| {
+            Almanac::new(seeds, mappings)
+        })(input)
     }
 }
 

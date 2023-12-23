@@ -51,9 +51,7 @@ mod parser {
     fn parse_hand(input: &str) -> IResult<&str, ParsedHand> {
         map(
             separated_pair(
-                verify(take(5usize), |cards: &str| {
-                    cards.chars().all(|c| VALID_CARD_CHARACTERS.contains(c))
-                }),
+                verify(take(5usize), |cards: &str| cards.chars().all(|c| VALID_CARD_CHARACTERS.contains(c))),
                 space1,
                 digit1,
             ),

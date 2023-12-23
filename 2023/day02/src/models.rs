@@ -40,9 +40,7 @@ pub(crate) struct Counts {
 }
 impl Counts {
     pub fn possible_with(&self, restriction: &Counts) -> bool {
-        self.red <= restriction.red
-            && self.green <= restriction.green
-            && self.blue <= restriction.blue
+        self.red <= restriction.red && self.green <= restriction.green && self.blue <= restriction.blue
     }
 }
 
@@ -56,11 +54,7 @@ impl Round {
     }
 
     pub fn count_for(&self, colour: Colour) -> u16 {
-        self.draws
-            .iter()
-            .filter(|draw| draw.colour == colour)
-            .map(|draw| draw.amount)
-            .sum()
+        self.draws.iter().filter(|draw| draw.colour == colour).map(|draw| draw.amount).sum()
     }
 
     pub fn get_counts(&self) -> Counts {
@@ -114,48 +108,23 @@ mod tests {
             rounds: vec![
                 Round {
                     draws: vec![
-                        Draw {
-                            amount: 3,
-                            colour: Colour::Blue,
-                        },
-                        Draw {
-                            amount: 4,
-                            colour: Colour::Red,
-                        },
+                        Draw { amount: 3, colour: Colour::Blue },
+                        Draw { amount: 4, colour: Colour::Red },
                     ],
                 },
                 Round {
                     draws: vec![
-                        Draw {
-                            amount: 1,
-                            colour: Colour::Red,
-                        },
-                        Draw {
-                            amount: 2,
-                            colour: Colour::Green,
-                        },
-                        Draw {
-                            amount: 6,
-                            colour: Colour::Blue,
-                        },
+                        Draw { amount: 1, colour: Colour::Red },
+                        Draw { amount: 2, colour: Colour::Green },
+                        Draw { amount: 6, colour: Colour::Blue },
                     ],
                 },
                 Round {
-                    draws: vec![Draw {
-                        amount: 2,
-                        colour: Colour::Green,
-                    }],
+                    draws: vec![Draw { amount: 2, colour: Colour::Green }],
                 },
             ],
         };
 
-        assert_eq!(
-            Counts {
-                red: 4,
-                green: 2,
-                blue: 6
-            },
-            game.get_minimum_counts(),
-        );
+        assert_eq!(Counts { red: 4, green: 2, blue: 6 }, game.get_minimum_counts(),);
     }
 }

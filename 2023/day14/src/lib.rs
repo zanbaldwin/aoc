@@ -52,26 +52,23 @@ pub(crate) mod models {
             let mut rocks = BTreeMap::new();
             let height: usize = input.lines().count();
             let mut width: Option<usize> = None;
-            input
-                .lines()
-                .enumerate()
-                .try_for_each(|(y, line)| -> Result<(), Error> {
-                    let line_width = line.chars().count();
-                    if width.get_or_insert(line_width) != &line_width {
-                        return Err(Error::CouldNotDeterminePlatformWidth);
-                    }
+            input.lines().enumerate().try_for_each(|(y, line)| -> Result<(), Error> {
+                let line_width = line.chars().count();
+                if width.get_or_insert(line_width) != &line_width {
+                    return Err(Error::CouldNotDeterminePlatformWidth);
+                }
 
-                    line.chars().enumerate().for_each(|(x, space)| {
-                        let position = Position { x: x + 1, y: y + 1 };
-                        match space {
-                            'O' => rocks.insert(position, Rock::Sphere),
-                            '#' => rocks.insert(position, Rock::Cube),
-                            _ => None,
-                        };
-                    });
+                line.chars().enumerate().for_each(|(x, space)| {
+                    let position = Position { x: x + 1, y: y + 1 };
+                    match space {
+                        'O' => rocks.insert(position, Rock::Sphere),
+                        '#' => rocks.insert(position, Rock::Cube),
+                        _ => None,
+                    };
+                });
 
-                    Ok(())
-                })?;
+                Ok(())
+            })?;
             Ok(Self {
                 width: width.ok_or(Error::CouldNotDeterminePlatformWidth)?,
                 height,
@@ -95,7 +92,7 @@ pub(crate) mod models {
                 TiltDirection::South | TiltDirection::East => {
                     rev_iter = rocks_iter.rev();
                     &mut rev_iter
-                }
+                },
             };
 
             rocks_iter.for_each(|(Position { x, y }, rock)| {
@@ -106,56 +103,56 @@ pub(crate) mod models {
                             Rock::Cube => {
                                 *dropspace_for_column = y + 1;
                                 (Position { x, y }, rock)
-                            }
+                            },
                             Rock::Sphere => {
                                 let y = *dropspace_for_column;
                                 *dropspace_for_column = y + 1;
                                 (Position { x, y }, rock)
-                            }
+                            },
                         }
-                    }
+                    },
                     TiltDirection::South => {
                         let dropspace_for_column = dropspace.entry(x).or_insert(self.height);
                         match rock {
                             Rock::Cube => {
                                 *dropspace_for_column = y - 1;
                                 (Position { x, y }, rock)
-                            }
+                            },
                             Rock::Sphere => {
                                 let y = *dropspace_for_column;
                                 *dropspace_for_column = y - 1;
                                 (Position { x, y }, rock)
-                            }
+                            },
                         }
-                    }
+                    },
                     TiltDirection::West => {
                         let dropspace_for_column = dropspace.entry(y).or_insert(1);
                         match rock {
                             Rock::Cube => {
                                 *dropspace_for_column = x + 1;
                                 (Position { x, y }, rock)
-                            }
+                            },
                             Rock::Sphere => {
                                 let x = *dropspace_for_column;
                                 *dropspace_for_column = x + 1;
                                 (Position { x, y }, rock)
-                            }
+                            },
                         }
-                    }
+                    },
                     TiltDirection::East => {
                         let dropspace_for_column = dropspace.entry(y).or_insert(self.width);
                         match rock {
                             Rock::Cube => {
                                 *dropspace_for_column = x - 1;
                                 (Position { x, y }, rock)
-                            }
+                            },
                             Rock::Sphere => {
                                 let x = *dropspace_for_column;
                                 *dropspace_for_column = x - 1;
                                 (Position { x, y }, rock)
-                            }
+                            },
                         }
-                    }
+                    },
                 };
                 result.insert(position, rock);
             });
@@ -214,9 +211,7 @@ pub(crate) mod models {
             self.rocks
                 .iter()
                 .filter(|(_position, rock)| rock == &&Rock::Sphere)
-                .map(|(Position { y, .. }, _rock)| {
-                    (*y as i32 - (self.height as i32 + 1)).unsigned_abs() as usize
-                })
+                .map(|(Position { y, .. }, _rock)| (*y as i32 - (self.height as i32 + 1)).unsigned_abs() as usize)
                 .sum()
         }
     }

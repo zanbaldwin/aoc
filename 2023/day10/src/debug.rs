@@ -11,19 +11,10 @@ impl TryFrom<&str> for Cell {
         if length < 6 {
             return Err(Error::CellParseError);
         }
-        let pipe: Pipe = cell
-            .chars()
-            .next()
-            .ok_or(Error::CellParseError)?
-            .try_into()?;
-        let (x, y) = cell[2..length - 1]
-            .split_once(',')
-            .ok_or(Error::CellParseError)?;
+        let pipe: Pipe = cell.chars().next().ok_or(Error::CellParseError)?.try_into()?;
+        let (x, y) = cell[2..length - 1].split_once(',').ok_or(Error::CellParseError)?;
         Ok(Cell {
-            position: (
-                x.parse().map_err(|_| Error::CellParseError)?,
-                y.parse().map_err(|_| Error::CellParseError)?,
-            ),
+            position: (x.parse().map_err(|_| Error::CellParseError)?, y.parse().map_err(|_| Error::CellParseError)?),
             pipe,
         })
     }
@@ -55,12 +46,8 @@ impl Display for Pipe {
 
 impl Display for Map {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let circuit_hashmap: HashMap<Position, Cell> = self
-            .circuit()
-            .map_err(|_| std::fmt::Error {})?
-            .into_iter()
-            .map(|cell| (cell.position, cell))
-            .collect();
+        let circuit_hashmap: HashMap<Position, Cell> =
+            self.circuit().map_err(|_| std::fmt::Error {})?.into_iter().map(|cell| (cell.position, cell)).collect();
         let mut v: Vec<String> = vec![];
         for y in 1..=self.height {
             let mut line: String = String::new();
@@ -96,7 +83,5 @@ impl Display for Map {
 // This reports as dead code because all the tests are removed from the analyzer during a check.
 #[allow(dead_code)]
 pub(crate) fn cell(input: &str) -> Cell {
-    input
-        .try_into()
-        .expect("expect you to type cell test values correctly")
+    input.try_into().expect("expect you to type cell test values correctly")
 }

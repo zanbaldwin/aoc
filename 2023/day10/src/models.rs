@@ -30,12 +30,7 @@ impl Pipe {
             Self::NorthWest => vec![Direction::North, Direction::West],
             Self::SouthEast => vec![Direction::East, Direction::South],
             Self::SouthWest => vec![Direction::South, Direction::West],
-            Self::Start => vec![
-                Direction::North,
-                Direction::East,
-                Direction::South,
-                Direction::West,
-            ],
+            Self::Start => vec![Direction::North, Direction::East, Direction::South, Direction::West],
         }
     }
 }
@@ -82,10 +77,7 @@ impl TryFrom<&str> for Map {
                 let position = (x + 1, y + 1);
                 if let Ok(pipe) = c.try_into() {
                     if pipe == Pipe::Start {
-                        starting_position = Some(Cell {
-                            position,
-                            pipe: Pipe::Start,
-                        });
+                        starting_position = Some(Cell { position, pipe: Pipe::Start });
                     }
                     tiles.insert(position, Cell { position, pipe });
                 }
@@ -100,13 +92,7 @@ impl TryFrom<&str> for Map {
     }
 }
 impl Map {
-    pub fn branches(
-        &self,
-        Cell {
-            position: (x, y),
-            pipe,
-        }: Cell,
-    ) -> Vec<Cell> {
+    pub fn branches(&self, Cell { position: (x, y), pipe }: Cell) -> Vec<Cell> {
         let mut branches = vec![];
         let can_go = pipe.can_go();
         // Going North
@@ -118,10 +104,7 @@ impl Map {
                     || pipe == &Pipe::SouthWest
                     || pipe == &Pipe::Start
                 {
-                    branches.push(Cell {
-                        position: north,
-                        pipe: *pipe,
-                    });
+                    branches.push(Cell { position: north, pipe: *pipe });
                 }
             }
         }
@@ -134,10 +117,7 @@ impl Map {
                     || pipe == &Pipe::SouthWest
                     || pipe == &Pipe::Start
                 {
-                    branches.push(Cell {
-                        position: east,
-                        pipe: *pipe,
-                    });
+                    branches.push(Cell { position: east, pipe: *pipe });
                 }
             }
         }
@@ -150,10 +130,7 @@ impl Map {
                     || pipe == &Pipe::NorthWest
                     || pipe == &Pipe::Start
                 {
-                    branches.push(Cell {
-                        position: south,
-                        pipe: *pipe,
-                    });
+                    branches.push(Cell { position: south, pipe: *pipe });
                 }
             }
         }
@@ -166,10 +143,7 @@ impl Map {
                     || pipe == &Pipe::SouthEast
                     || pipe == &Pipe::Start
                 {
-                    branches.push(Cell {
-                        position: west,
-                        pipe: *pipe,
-                    });
+                    branches.push(Cell { position: west, pipe: *pipe });
                 }
             }
         }
@@ -181,8 +155,7 @@ impl Map {
         if branches.len() < 2 {
             return Err(Error::NoTraversalFound);
         }
-        self.traverse(vec![], self.start)
-            .ok_or(Error::NoTraversalFound)
+        self.traverse(vec![], self.start).ok_or(Error::NoTraversalFound)
     }
 
     fn traverse(&self, mut traversed: Vec<Cell>, cell: Cell) -> Option<Vec<Cell>> {
@@ -206,10 +179,7 @@ impl Map {
 // Part 2
 impl Map {
     fn circuit_into_btree(circuit: Vec<Cell>) -> BTreeMap<Position, Cell> {
-        circuit
-            .into_iter()
-            .map(|cell| (cell.position, cell))
-            .collect()
+        circuit.into_iter().map(|cell| (cell.position, cell)).collect()
     }
 
     pub(crate) fn num_bounded(&self) -> Result<usize, Error> {
@@ -218,9 +188,7 @@ impl Map {
         for y in 1..=self.height {
             for x in 1..=self.width {
                 let position: Position = (x, y);
-                if circuit.get(&position).is_none()
-                    && Map::is_position_bounded_by(position, &circuit)
-                {
+                if circuit.get(&position).is_none() && Map::is_position_bounded_by(position, &circuit) {
                     count += 1;
                 }
             }
@@ -229,13 +197,9 @@ impl Map {
     }
 
     /// This is the part of my solution that I needed to look
-    pub(crate) fn is_position_bounded_by(
-        (pos_x, pos_y): Position,
-        circuit: &BTreeMap<Position, Cell>,
-    ) -> bool {
-        let bounding_pipes_to_the_left = circuit
-            .iter()
-            .filter(|((cell_x, cell_y), _)| cell_x < &pos_x && cell_y == &pos_y);
+    pub(crate) fn is_position_bounded_by((pos_x, pos_y): Position, circuit: &BTreeMap<Position, Cell>) -> bool {
+        let bounding_pipes_to_the_left =
+            circuit.iter().filter(|((cell_x, cell_y), _)| cell_x < &pos_x && cell_y == &pos_y);
         let mut crossings = 0;
         let mut previous: Option<Pipe> = None;
         for (_position, cell) in bounding_pipes_to_the_left {
@@ -247,11 +211,11 @@ impl Map {
                 Pipe::NorthEast => {
                     crossings += 1;
                     previous = Some(Pipe::NorthEast);
-                }
+                },
                 Pipe::SouthEast => {
                     crossings += 1;
                     previous = Some(Pipe::SouthEast);
-                }
+                },
                 // But pipes pointing east only count as another crossing if the
                 // pipe is pointing the same north or south as the previous one.
                 // For example:
@@ -371,11 +335,7 @@ L7JLJL-JLJLJL--JLJ.L";
     #[case(TEST_MAP_3, (8, 5), true)]
     #[case(TEST_MAP_4, (13, 6), true)]
     #[case(TEST_MAP_4, (19, 5), false)]
-    fn is_position_bounded_by(
-        #[case] input: &str,
-        #[case] position: Position,
-        #[case] expected: bool,
-    ) {
+    fn is_position_bounded_by(#[case] input: &str, #[case] position: Position, #[case] expected: bool) {
         let map: Map = input.try_into().unwrap();
         let circuit = Map::circuit_into_btree(map.circuit().unwrap());
         assert_eq!(expected, Map::is_position_bounded_by(position, &circuit));

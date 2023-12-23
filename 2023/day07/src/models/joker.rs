@@ -96,16 +96,8 @@ impl TryFrom<Vec<Card>> for HandType {
             return Ok(HandType::FiveOfAKind);
         }
 
-        let remaining_cards: Vec<Card> = cards
-            .iter()
-            .filter_map(|card| {
-                if *card != Card::Jack {
-                    Some(*card)
-                } else {
-                    None
-                }
-            })
-            .collect();
+        let remaining_cards: Vec<Card> =
+            cards.iter().filter_map(|card| if *card != Card::Jack { Some(*card) } else { None }).collect();
 
         let mut map: HashMap<Card, usize> = HashMap::new();
         for remaining_card in remaining_cards {
@@ -186,19 +178,7 @@ impl Ord for Hand {
 }
 impl fmt::Display for Hand {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> fmt::Result {
-        let cards = self
-            .cards
-            .iter()
-            .map(|card| card.to_string())
-            .collect::<Vec<_>>()
-            .join("");
-        write!(
-            f,
-            "Bidding {:width$} for hand ({}): {}",
-            self.bid,
-            cards,
-            self.hand_type,
-            width = 4,
-        )
+        let cards = self.cards.iter().map(|card| card.to_string()).collect::<Vec<_>>().join("");
+        write!(f, "Bidding {:width$} for hand ({}): {}", self.bid, cards, self.hand_type, width = 4,)
     }
 }

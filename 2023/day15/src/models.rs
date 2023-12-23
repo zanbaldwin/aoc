@@ -74,32 +74,29 @@ impl<'a> TryFrom<&'a str> for Boxes<'a> {
     type Error = Error;
     fn try_from(input: &'a str) -> Result<Self, Self::Error> {
         let mut boxes: BTreeMap<u8, LensBox<'a>> = BTreeMap::new();
-        input
-            .split(',')
-            .enumerate()
-            .try_for_each(|(i, step)| -> Result<(), Error> {
-                let step = parse(step)?;
-                let hash = reindeer_hash(step.label);
-                let lens_box = boxes.entry(hash as u8).or_default();
-                // We care about the order that they are being *inserted* but
-                // order doesn't matter if they are being *replaced*.
-                match step.get_lens(i) {
-                    Some(lens) => {
-                        match lens_box.get_mut(step.label) {
-                            Some(existing_lens) => {
-                                existing_lens.focal_length = lens.focal_length;
-                            }
-                            None => {
-                                lens_box.insert(step.label, lens);
-                            }
-                        };
-                    }
-                    None => {
-                        lens_box.remove(&step.label);
-                    }
-                }
-                Ok(())
-            })?;
+        input.split(',').enumerate().try_for_each(|(i, step)| -> Result<(), Error> {
+            let step = parse(step)?;
+            let hash = reindeer_hash(step.label);
+            let lens_box = boxes.entry(hash as u8).or_default();
+            // We care about the order that they are being *inserted* but
+            // order doesn't matter if they are being *replaced*.
+            match step.get_lens(i) {
+                Some(lens) => {
+                    match lens_box.get_mut(step.label) {
+                        Some(existing_lens) => {
+                            existing_lens.focal_length = lens.focal_length;
+                        },
+                        None => {
+                            lens_box.insert(step.label, lens);
+                        },
+                    };
+                },
+                None => {
+                    lens_box.remove(&step.label);
+                },
+            }
+            Ok(())
+        })?;
         Ok(Boxes { boxes })
     }
 }
@@ -130,25 +127,15 @@ impl<'a> Boxes<'a> {
         let mut focusing_powers: BTreeMap<&'a str, u32> = BTreeMap::new();
 
         (0..=u8::MAX)
-            .filter_map(|box_number| {
-                Some((
-                    box_number,
-                    self.boxes.get(&box_number)?.values().collect::<Vec<_>>(),
-                ))
-            })
+            .filter_map(|box_number| Some((box_number, self.boxes.get(&box_number)?.values().collect::<Vec<_>>())))
             .for_each(|(box_number, mut lenses)| {
                 lenses.sort();
-                lenses
-                    .into_iter()
-                    .enumerate()
-                    .for_each(|(lens_position, lens)| {
-                        focusing_powers.insert(
-                            lens.label,
-                            (box_number as u32 + 1)
-                                * (lens_position as u32 + 1)
-                                * lens.focal_length as u32,
-                        );
-                    })
+                lenses.into_iter().enumerate().for_each(|(lens_position, lens)| {
+                    focusing_powers.insert(
+                        lens.label,
+                        (box_number as u32 + 1) * (lens_position as u32 + 1) * lens.focal_length as u32,
+                    );
+                })
             });
         focusing_powers
     }

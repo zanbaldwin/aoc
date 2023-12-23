@@ -7,9 +7,7 @@ pub fn process(input: &str) -> miette::Result<String, AocError> {
     let minimum_location = (1..i64::MAX)
         .find(|location| {
             let potential_seed = almanac.translate_location_to_seed(*location);
-            seed_ranges
-                .iter()
-                .any(|range| range.contains(&potential_seed))
+            seed_ranges.iter().any(|range| range.contains(&potential_seed))
         })
         .expect("there to be at least one matching location");
     Ok(minimum_location.to_string())

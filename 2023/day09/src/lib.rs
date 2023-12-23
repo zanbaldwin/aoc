@@ -47,9 +47,7 @@ pub(crate) fn generate_report(input: &str) -> Result<Report, Error> {
         .trim()
         .lines()
         .map(|line| -> Result<History, Error> {
-            line.split_whitespace()
-                .map(|num| num.parse().map_err(Error::InvalidNumber))
-                .collect()
+            line.split_whitespace().map(|num| num.parse().map_err(Error::InvalidNumber)).collect()
         })
         .collect()
 }

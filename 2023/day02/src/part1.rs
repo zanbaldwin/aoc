@@ -1,20 +1,12 @@
 use crate::{aoc_error::AocError, models::Counts, parser::parse};
 
-static ELF_RESTRICTION: Counts = Counts {
-    red: 12,
-    green: 13,
-    blue: 14,
-};
+static ELF_RESTRICTION: Counts = Counts { red: 12, green: 13, blue: 14 };
 
 pub fn process(input: &str) -> miette::Result<String, AocError> {
     let games = parse(input)?;
     let id_sum: u32 = games
         .iter()
-        .filter(|game| {
-            !game.get_rounds()
-                .iter()
-                .any(|round| !round.get_counts().possible_with(&ELF_RESTRICTION))
-        })
+        .filter(|game| !game.get_rounds().iter().any(|round| !round.get_counts().possible_with(&ELF_RESTRICTION)))
         .map(|game| game.get_id() as u32)
         .sum();
     Ok(id_sum.to_string())

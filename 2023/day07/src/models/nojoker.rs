@@ -99,7 +99,7 @@ impl TryFrom<Vec<Card>> for HandType {
                     // FullHouse (AAABB).
                     Self::FullHouse
                 }
-            }
+            },
             // Either ThreeOfAKind(AAABC) or TwoPair (AABBC).
             3 => {
                 if map.iter().any(|(_card, count)| *count == 3) {
@@ -107,7 +107,7 @@ impl TryFrom<Vec<Card>> for HandType {
                 } else {
                     Self::TwoPair
                 }
-            }
+            },
             // OnePair (AABCD).
             4 => Self::OnePair,
             // HighCard (ABCDE).
@@ -163,19 +163,7 @@ impl Ord for Hand {
 }
 impl fmt::Display for Hand {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> fmt::Result {
-        let cards = self
-            .cards
-            .iter()
-            .map(|card| card.to_string())
-            .collect::<Vec<_>>()
-            .join("");
-        write!(
-            f,
-            "Bidding {:width$} for hand ({}): {}",
-            self.bid,
-            cards,
-            self.hand_type,
-            width = 4,
-        )
+        let cards = self.cards.iter().map(|card| card.to_string()).collect::<Vec<_>>().join("");
+        write!(f, "Bidding {:width$} for hand ({}): {}", self.bid, cards, self.hand_type, width = 4,)
     }
 }

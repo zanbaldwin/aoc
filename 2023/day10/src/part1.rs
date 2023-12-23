@@ -14,13 +14,7 @@ mod tests {
 
     #[test]
     fn test_cell_parsing() {
-        assert_eq!(
-            cell("S(34,12)"),
-            Cell {
-                position: (34, 12),
-                pipe: Pipe::Start
-            }
-        );
+        assert_eq!(cell("S(34,12)"), Cell { position: (34, 12), pipe: Pipe::Start });
     }
 
     #[test]

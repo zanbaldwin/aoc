@@ -32,10 +32,7 @@ use nom::{
 ///
 /// [`Step`]: crate::models::Step
 pub fn parse_step(input: &str) -> IResult<&str, Step, Error> {
-    map(
-        tuple((alpha1, parse_instruction)),
-        |(label, instruction)| Step { label, instruction },
-    )(input)
+    map(tuple((alpha1, parse_instruction)), |(label, instruction)| Step { label, instruction })(input)
 }
 
 /// Parse Instruction

@@ -29,11 +29,9 @@ impl TryFrom<&str> for Position {
     type Error = Error;
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         fn parse(input: &str) -> IResult<&str, (&str, &str)> {
-            complete(delimited(
-                tag("("),
-                separated_pair(digit1, tuple((space0, tag(","), space0)), digit1),
-                tag(")"),
-            ))(input.trim())
+            complete(delimited(tag("("), separated_pair(digit1, tuple((space0, tag(","), space0)), digit1), tag(")")))(
+                input.trim(),
+            )
         }
 
         let (_, (x, y)) = parse(value).map_err(|_| Error::CouldNotParsePosition)?;

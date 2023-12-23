@@ -36,7 +36,7 @@ where
             // is just to construct it from a string (meaning that it needs to
             // implement `From<&str>`).
             Err("Input could not be correctly parsed.".into())
-        }
+        },
     };
 }
 

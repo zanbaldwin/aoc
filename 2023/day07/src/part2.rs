@@ -11,11 +11,7 @@ pub fn process(input: &str) -> Result<String, Error> {
         .map(|hand| -> Result<Hand, Error> { hand.try_into() })
         .collect::<Result<Vec<_>, Error>>()?;
     hands.sort();
-    let total: usize = hands
-        .into_iter()
-        .enumerate()
-        .map(|(index, hand)| hand.score(index + 1))
-        .sum();
+    let total: usize = hands.into_iter().enumerate().map(|(index, hand)| hand.score(index + 1)).sum();
     Ok(total.to_string())
 }
 

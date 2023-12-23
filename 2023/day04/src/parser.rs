@@ -28,11 +28,7 @@ fn parse_scratchcard(input: &str) -> IResult<&str, Scratchcard> {
             digit1,
             tag(":"),
             space1,
-            separated_pair(
-                parse_list_of_numbers,
-                tuple((space0, tag("|"), space0)),
-                parse_list_of_numbers,
-            ),
+            separated_pair(parse_list_of_numbers, tuple((space0, tag("|"), space0)), parse_list_of_numbers),
         )),
         |(_, _, card_number, _, _, (winning_numbers, playing_numbers))| {
             Scratchcard::new(
@@ -51,13 +47,11 @@ pub(crate) fn parse(input: &str) -> miette::Result<Vec<Scratchcard>, AocError> {
     match separated_list1(line_ending, parse_scratchcard)(input.trim()) {
         Ok((remaining_input, scratchcards)) => {
             if !remaining_input.trim().is_empty() {
-                Err(invalid_input_error(
-                    "Additional unparsed data at the end of input: {remaining_input}",
-                ))
+                Err(invalid_input_error("Additional unparsed data at the end of input: {remaining_input}"))
             } else {
                 Ok(scratchcards)
             }
-        }
+        },
         Err(_) => Err(invalid_input_error("Input could not be correctly parsed.")),
     }
 }

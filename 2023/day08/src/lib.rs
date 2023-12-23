@@ -63,20 +63,12 @@ mod models {
         pub(crate) maps: MapCollection<'a>,
     }
     impl<'a> Pouch<'a> {
-        fn process(
-            &self,
-            position: &str,
-            end_checker: impl Fn(&str) -> bool,
-        ) -> Result<usize, Error> {
+        fn process(&self, position: &str, end_checker: impl Fn(&str) -> bool) -> Result<usize, Error> {
             let mut position: &str = position;
             let mut count = 0;
             for direction in self.sequence.iter().cycle() {
                 count += 1;
-                position = self
-                    .maps
-                    .get(position)
-                    .ok_or(Error::MissingPosition(position.to_string()))?
-                    .next(direction);
+                position = self.maps.get(position).ok_or(Error::MissingPosition(position.to_string()))?.next(direction);
                 if end_checker(position) {
                     break;
                 }
@@ -89,12 +81,8 @@ mod models {
         }
 
         pub(crate) fn ghost(&self) -> Result<usize, Error> {
-            let starting_positions: Vec<&str> = self
-                .maps
-                .keys()
-                .filter(|position| position.ends_with('A'))
-                .cloned()
-                .collect();
+            let starting_positions: Vec<&str> =
+                self.maps.keys().filter(|position| position.ends_with('A')).cloned().collect();
 
             let lengths: Vec<usize> = starting_positions
                 .into_iter()
@@ -124,10 +112,10 @@ mod parser {
     };
 
     pub(crate) fn parse_pouch(input: &str) -> IResult<&str, Pouch<'_>> {
-        map(
-            separated_pair(parse_sequence, many1(line_ending), parse_maps),
-            |(sequence, maps)| Pouch { sequence, maps },
-        )(input)
+        map(separated_pair(parse_sequence, many1(line_ending), parse_maps), |(sequence, maps)| Pouch {
+            sequence,
+            maps,
+        })(input)
     }
 
     fn parse_sequence(input: &str) -> IResult<&str, Vec<Direction>> {
@@ -135,27 +123,17 @@ mod parser {
     }
 
     fn parse_maps(input: &str) -> IResult<&str, MapCollection<'_>> {
-        map(separated_list1(line_ending, parse_map), |collection| {
-            collection.into_iter().collect()
-        })(input)
+        map(separated_list1(line_ending, parse_map), |collection| collection.into_iter().collect())(input)
     }
 
     fn parse_map(input: &str) -> IResult<&str, (&str, Map<'_>)> {
-        separated_pair(
-            alphanumeric1,
-            tuple((space1, tag("="), space1)),
-            parse_routes,
-        )(input)
+        separated_pair(alphanumeric1, tuple((space1, tag("="), space1)), parse_routes)(input)
     }
 
     fn parse_routes(input: &str) -> IResult<&str, Map<'_>> {
         let (remaining, (left, right)) = delimited(
             tag("("),
-            separated_pair(
-                alphanumeric1,
-                tuple((space0, tag(","), space0)),
-                alphanumeric1,
-            ),
+            separated_pair(alphanumeric1, tuple((space0, tag(","), space0)), alphanumeric1),
             tag(")"),
         )(input)?;
         // Doing this to remind myself that not everything has to be one massive

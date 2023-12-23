@@ -26,9 +26,7 @@ fn parse_draw(input: &str) -> IResult<&str, Draw> {
 }
 
 fn parse_round(input: &str) -> IResult<&str, Round> {
-    map(separated_list1(tag(", "), parse_draw), |draws| {
-        Round::new(draws)
-    })(input)
+    map(separated_list1(tag(", "), parse_draw), |draws| Round::new(draws))(input)
 }
 
 fn parse_rounds(input: &str) -> IResult<&str, Vec<Round>> {
@@ -36,10 +34,9 @@ fn parse_rounds(input: &str) -> IResult<&str, Vec<Round>> {
 }
 
 fn parse_game(input: &str) -> IResult<&str, Game> {
-    map(
-        tuple((tag("Game "), digit1, tag(": "), parse_rounds)),
-        |(_, id, _, rounds)| Game::new(id.parse().unwrap(), rounds),
-    )(input)
+    map(tuple((tag("Game "), digit1, tag(": "), parse_rounds)), |(_, id, _, rounds)| {
+        Game::new(id.parse().unwrap(), rounds)
+    })(input)
 }
 
 pub(crate) fn parse(input: &str) -> Result<Vec<Game>, AocError> {
@@ -53,10 +50,7 @@ pub(crate) fn parse(input: &str) -> Result<Vec<Game>, AocError> {
             } else {
                 Ok(games)
             }
-        }
-        Err(_) => Err(AocError::IoError(Error::new(
-            ErrorKind::InvalidInput,
-            "Input could not be correctly parsed.",
-        ))),
+        },
+        Err(_) => Err(AocError::IoError(Error::new(ErrorKind::InvalidInput, "Input could not be correctly parsed."))),
     }
 }

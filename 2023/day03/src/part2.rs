@@ -2,11 +2,8 @@ use crate::{aoc_error::AocError, parser::parse, EngineMap, Gear};
 
 pub fn process(input: &str) -> miette::Result<String, AocError> {
     let engine: EngineMap = parse(input)?.into();
-    let sum_of_gear_ratios: usize = engine
-        .get_gears()
-        .iter()
-        .map(|gear: &Gear| gear.1.iter().fold(1, |acc, part| acc * part.id))
-        .sum();
+    let sum_of_gear_ratios: usize =
+        engine.get_gears().iter().map(|gear: &Gear| gear.1.iter().fold(1, |acc, part| acc * part.id)).sum();
     Ok(sum_of_gear_ratios.to_string())
 }
 
