@@ -21,40 +21,25 @@ fn parse_input(input: &str) -> IResult<&str, UnGraph<&str, ()>> {
     map(parse_list, |links| {
         let mut graph = UnGraph::<&str, ()>::new_undirected();
 
-        // Create all referenced nodes.
-        // Alternative implementation (but possibly uses more memory):
-        //      Clone, flatten, collect into HashSet, iterate over HashSet, add
-        //      nodes to graph, collect into HashMap.
         let mut nodes: HashMap<&str, NodeIndex> = HashMap::new();
         links.iter().for_each(|(node_name, edges)| {
-            nodes
+            let node_index = *nodes
                 .entry(node_name)
                 .or_insert_with(|| graph.add_node(node_name));
-            edges.iter().for_each(|node_name| {
-                nodes
-                    .entry(node_name)
-                    .or_insert_with(|| graph.add_node(node_name));
-            });
-        });
 
-        // Link all nodes using all referenced edges.
-        for (node_name, edges) in links {
-            let node_index = nodes.get(node_name).expect(
-                "Connecting node not found, despite iterating over every possible node in input.",
-            );
-            for edge in edges {
+            edges.iter().for_each(|edge_name| {
                 let edge_index = nodes
-                    .get(edge)
-                    .expect("Connected node not found, despite iterating over every possible node in input.");
+                    .entry(edge_name)
+                    .or_insert_with(|| graph.add_node(edge_name));
 
                 let edge_exists = graph
-                    .edges(*node_index)
+                    .edges(node_index)
                     .any(|edge_ref| edge_ref.target() == *edge_index);
                 if !edge_exists {
-                    graph.add_edge(*node_index, *edge_index, ());
+                    graph.add_edge(node_index, *edge_index, ());
                 }
-            }
-        }
+            });
+        });
 
         graph
     })(input)
