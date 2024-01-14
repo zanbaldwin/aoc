@@ -15,3 +15,6 @@ target/
 .AppleDouble
 .LSOverride
 ._*
+
+# Advent of Code
+input.txt
