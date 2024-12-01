@@ -10,11 +10,10 @@ use std::path::Path;
 use std::time::{Duration, Instant};
 
 pub trait Solution {
-    type Parsed;
-    fn day(&self) -> u8;
+    type Parsed: Clone;
     fn parse(&self, input: &str) -> Result<Self::Parsed, ParseError>;
-    fn part1(&self, input: &Self::Parsed) -> Result<impl Display, RunnerError>;
-    fn part2(&self, input: &Self::Parsed) -> Result<impl Display, RunnerError>;
+    fn part1(&self, input: Self::Parsed) -> Result<impl Display, RunnerError>;
+    fn part2(&self, input: Self::Parsed) -> Result<impl Display, RunnerError>;
 }
 
 pub struct AdventOfCode {}
@@ -33,12 +32,14 @@ impl AdventOfCode {
         let parsed = day.parse(input)?;
         let parse_time = now.elapsed();
 
+        let part_one_parsed = parsed.clone();
         let now = Instant::now();
-        let part_one_result = day.part1(&parsed);
+        let part_one_result = day.part1(part_one_parsed);
         let part_one_time = now.elapsed();
 
+        let part_two_parsed = parsed.clone();
         let now = Instant::now();
-        let part_two_result = day.part2(&parsed);
+        let part_two_result = day.part2(part_two_parsed);
         let part_two_time = now.elapsed();
 
         Ok(DayResult {
@@ -76,11 +77,11 @@ impl Display for DayResult {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         writeln!(
             f,
-            r#"Parsed: in {}
+            r#"Parsed in: {}
 
-- Part 1: {}
+⭐ Part 1: {}
    ... in {} ({})
-- Part 2: {}
+⭐ Part 2: {}
    ... in {} ({})"#,
             self.parse_time.human(Truncate::Nano),
             match &self.part_one.answer {

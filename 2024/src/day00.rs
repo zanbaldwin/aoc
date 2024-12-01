@@ -7,10 +7,6 @@ pub struct Day00 {}
 impl Solution for Day00 {
     type Parsed = models::Graph;
 
-    fn day(&self) -> u8 {
-        0
-    }
-
     fn parse(&self, input: &str) -> Result<Self::Parsed, ParseError> {
         let mut modules = parser::get_modules(input.trim())?;
 
@@ -39,8 +35,8 @@ impl Solution for Day00 {
         Ok(modules)
     }
 
-    fn part1(&self, input: &Self::Parsed) -> Result<impl Display, RunnerError> {
-        let mut exec = models::Execution::new(input.clone());
+    fn part1(&self, input: Self::Parsed) -> Result<impl Display, RunnerError> {
+        let mut exec = models::Execution::new(input);
         for _i in 0..1000 {
             exec.push_the_button();
             while !exec.is_queue_clear() {
@@ -51,18 +47,18 @@ impl Solution for Day00 {
         Ok(exec)
     }
 
-    fn part2(&self, input: &Self::Parsed) -> Result<impl Display, RunnerError> {
-        let mut exec = models::Execution::new(input.clone());
+    fn part2(&self, _input: Self::Parsed) -> Result<impl Display, RunnerError> {
         // Yeah so this is another one of Eric's "you can't bruteforce your
         // way through this one, sucker" puzzles.
-        return Err(RunnerError::Unimplemented);
-        while !exec.machine_on {
-            exec.push_the_button();
-            while !exec.is_queue_clear() {
-                exec.tick();
-            }
-        }
-        Ok(exec.presses)
+        Err::<usize, RunnerError>(RunnerError::Unimplemented)
+        // let mut exec = models::Execution::new(input);
+        // while !exec.machine_on {
+        //     exec.push_the_button();
+        //     while !exec.is_queue_clear() {
+        //         exec.tick();
+        //     }
+        // }
+        // Ok(exec.presses)
     }
 }
 
