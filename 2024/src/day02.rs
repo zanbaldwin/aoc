@@ -5,20 +5,16 @@ pub struct Day02 {}
 impl Solution for Day02 {
     type Parsed = i32;
 
-    fn day(&self) -> u8 {
-        1
-    }
-
     fn parse(&self, input: &str) -> Result<Self::Parsed, ParseError> {
         let result = input.parse().map_err(ParseError::Int)?;
         Ok(result)
     }
 
-    fn part1(&self, input: &Self::Parsed) -> Result<impl Display, RunnerError> {
+    fn part1(&self, input: Self::Parsed) -> Result<impl Display, RunnerError> {
         Ok(input)
     }
 
-    fn part2(&self, input: &Self::Parsed) -> Result<impl Display, RunnerError> {
+    fn part2(&self, input: Self::Parsed) -> Result<impl Display, RunnerError> {
         Ok(input)
     }
 }
