@@ -1,4 +1,4 @@
-use aoc_2023::{day01, day02, day03, day04, day05};
+use aoc_2023::{day01, day02, day03, day04, day05, day06};
 use aoc_common::{app::SingleYear as Application, AdventOfCode, AocError};
 use humanize_duration::{prelude::DurationExt, Truncate};
 use std::{process::exit, time::Instant};
@@ -13,6 +13,7 @@ fn main() -> ! {
         3 => AdventOfCode::run(day03::Day03 {}, input),
         4 => AdventOfCode::run(day04::Day04 {}, input),
         5 => AdventOfCode::run(day05::Day05 {}, input),
+        6 => AdventOfCode::run(day06::Day06 {}, input),
         _ => Err(AocError::OutOfScope(day)),
     });
     println!("Total: {}", now.elapsed().human(Truncate::Nano));
