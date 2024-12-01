@@ -1,0 +1,11 @@
+[package]
+name = "aoc-common"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+humanize-duration = "0.0.6"
+thiserror = "2.0.3"
+clap = "4.5.21"
+humanize-bytes = "1.0.6"
+nom = "7.1.3"

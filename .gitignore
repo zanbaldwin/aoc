@@ -1,0 +1,7 @@
+/.idea/
+/debug/
+**/debug/
+/input/
+/target/
+**/target/
+**/*.rs.bk
