@@ -61,6 +61,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "aoc-2023"
+version = "0.1.0"
+dependencies = [
+ "aoc-common",
+ "humanize-duration",
+ "nom",
+ "rstest",
+ "rstest_reuse",
+]
+
+[[package]]
 name = "aoc-2024"
 version = "0.1.0"
 dependencies = [
