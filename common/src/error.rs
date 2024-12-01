@@ -13,6 +13,8 @@ pub enum ParseError {
 
 #[derive(Debug, Error)]
 pub enum RunnerError {
+    #[error("{0}")]
+    Custom(String),
     #[error("Not yet implemented")]
     Unimplemented,
     #[error("Unknown error: {0}")]
