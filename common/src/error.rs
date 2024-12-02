@@ -5,6 +5,8 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum ParseError {
+    #[error("{0}")]
+    Custom(String),
     #[error("Cannot convert to integer: {0}")]
     Int(ParseIntError),
     #[error("Nomming went bad: {0}")]
@@ -13,6 +15,8 @@ pub enum ParseError {
 
 #[derive(Debug, Error)]
 pub enum RunnerError {
+    #[error("{0}")]
+    Custom(String),
     #[error("Not yet implemented")]
     Unimplemented,
     #[error("Unknown error: {0}")]
