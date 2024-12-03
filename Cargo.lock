@@ -69,6 +69,7 @@ dependencies = [
  "humanize-duration",
  "itertools",
  "nom",
+ "regex",
  "rstest",
  "rstest_reuse",
 ]
