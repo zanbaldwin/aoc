@@ -3,7 +3,7 @@ use std::io::Error as IoError;
 use std::num::ParseIntError;
 use thiserror::Error;
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, PartialEq)]
 pub enum ParseError {
     #[error("{0}")]
     Custom(String),

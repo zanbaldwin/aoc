@@ -1,4 +1,4 @@
-use aoc_2024::{day01, day02, day03};
+use aoc_2024::{day01, day02, day03, day04};
 use aoc_common::{
     app::{Input, SingleYear as Application},
     AdventOfCode, AocError,
@@ -14,6 +14,7 @@ fn main() -> ! {
         1 => AdventOfCode::run(day01::Day01 {}, input),
         2 => AdventOfCode::run(day02::Day02 {}, input),
         3 => AdventOfCode::run(day03::Day03 {}, input),
+        4 => AdventOfCode::run(day04::Day04 {}, input),
         _ => Err(AocError::OutOfScope(day)),
     });
     println!("Total: {}", now.elapsed().human(Truncate::Nano));
