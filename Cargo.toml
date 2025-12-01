@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
 members = ["common", "2024"]
+exclude = ["2025"]
 
 [workspace.dependencies]
 tracing = "0.1"
