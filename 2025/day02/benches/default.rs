@@ -1,3 +1,4 @@
+use common::Input;
 use day02::parse;
 use divan::Bencher;
 use std::sync::OnceLock;

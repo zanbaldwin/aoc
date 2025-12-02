@@ -1,3 +1,4 @@
+use common::Input;
 use divan::Bencher;
 use std::sync::OnceLock;
 
