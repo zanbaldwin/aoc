@@ -1,0 +1,15 @@
+[package]
+name = "day03"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+common.workspace = true
+
+[dev-dependencies]
+rstest.workspace = true
+divan.workspace = true
+
+[[bench]]
+name = "default"
+harness = false
