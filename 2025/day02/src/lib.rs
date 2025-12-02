@@ -1,7 +1,7 @@
 pub type Id = u64;
 
-pub fn parse(input: &str) -> Vec<IdPair> {
-    input.trim().split(',').map(|p| p.into()).collect()
+pub fn parse(input: impl AsRef<str>) -> Vec<IdPair> {
+    input.as_ref().trim().split(',').map(|p| p.into()).collect()
 }
 
 #[derive(Debug, PartialEq)]
@@ -9,9 +9,9 @@ pub struct IdPair {
     left: Id,
     right: Id,
 }
-impl From<&str> for IdPair {
-    fn from(value: &str) -> Self {
-        let (left, right) = value.split_once('-').unwrap();
+impl<T: AsRef<str>> From<T> for IdPair {
+    fn from(value: T) -> Self {
+        let (left, right) = value.as_ref().split_once('-').unwrap();
         let left: Id = left.parse().unwrap();
         let right: Id = right.parse().unwrap();
         Self {

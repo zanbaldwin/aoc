@@ -1,11 +1,14 @@
 [package]
 name = "day01"
-version = "0.1.0"
-edition = "2024"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+common.workspace = true
 
 [dev-dependencies]
-rstest = "^0.26"
-divan = "^0.1"
+rstest.workspace = true
+divan.workspace = true
 
 [[bench]]
 name = "default"

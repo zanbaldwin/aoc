@@ -1,0 +1,22 @@
+[workspace]
+resolver = "2"
+members = ["day*", "common"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+
+[workspace.dependencies]
+common = { path = "common" }
+divan = { version = "^0.1" }
+rstest = { version = "^0.26" }
+rstest_reuse = { version = "^0.7" }
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+strip = true
+panic = "abort"
+[profile.release.package."*"]
+opt-level = "z"

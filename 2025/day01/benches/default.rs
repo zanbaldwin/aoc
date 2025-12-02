@@ -38,8 +38,7 @@ fn bench_part1_solve(bencher: Bencher) {
     bencher.bench(|| {
         let instructions: InstructionSet = INPUT.into();
         let spins = instructions.spin(STARTING_POSITION);
-        let part1 = count_zeros_landed(&spins);
-        part1
+        count_zeros_landed(&spins)
     });
 }
 
@@ -48,8 +47,7 @@ fn bench_part2_solve(bencher: Bencher) {
     bencher.bench(|| {
         let instructions: InstructionSet = INPUT.into();
         let spins = instructions.spin(STARTING_POSITION);
-        let part2 = count_zeros_touched(&spins);
-        part2
+        count_zeros_touched(&spins)
     });
 }
 

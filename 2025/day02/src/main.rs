@@ -1,8 +1,9 @@
+use common::Input;
 use day02::parse;
 
 fn main() {
-    let input = include_str!("../input.txt");
-    let pairs = parse(input);
+    let input = Input::from_cli().expect("Failed to open input file").into_string();
+    let pairs = parse(&input);
     let part1: u64 = pairs.iter().flat_map(|p| p.repeated_twice_ids()).sum();
     let part2: u64 = pairs.iter().flat_map(|p| p.repeated_any_ids()).sum();
 

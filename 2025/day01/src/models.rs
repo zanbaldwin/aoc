@@ -12,9 +12,9 @@ pub struct Instruction {
     direction: Direction,
     clicks: u16,
 }
-impl From<&str> for Instruction {
-    fn from(value: &str) -> Self {
-        let line = value.trim();
+impl<T: AsRef<str>> From<T> for Instruction {
+    fn from(value: T) -> Self {
+        let line = value.as_ref().trim();
         let direction = match line.chars().nth(0) {
             Some('L') => Direction::Left,
             Some('R') => Direction::Right,
@@ -33,9 +33,9 @@ impl Instruction {
 pub struct InstructionSet {
     instructions: Vec<Instruction>,
 }
-impl From<&str> for InstructionSet {
-    fn from(value: &str) -> Self {
-        let instructions: Vec<Instruction> = value.trim().lines().map(|l| l.into()).collect();
+impl<T: AsRef<str>> From<T> for InstructionSet {
+    fn from(value: T) -> Self {
+        let instructions: Vec<Instruction> = value.as_ref().trim().lines().map(|l| l.into()).collect();
         Self { instructions }
     }
 }
