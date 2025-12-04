@@ -1,8 +1,9 @@
 #![allow(dead_code)]
+#![allow(refining_impl_trait)]
 
 use clap::Parser;
 use std::fs::File;
-use std::io::{BufReader, Error as IoError, ErrorKind, Read};
+use std::io::{BufRead, BufReader, Cursor, Error as IoError, ErrorKind, Read};
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -20,12 +21,12 @@ struct Args {
 #[macro_export]
 macro_rules! input {
     () => {{
-        let input = match $crate::Input::from_cli() {
+        let input = match $crate::input::FileInput::from_cli() {
             Ok(input) => Ok(input),
             Err(e) if matches!(e.kind(), std::io::ErrorKind::InvalidInput) => {
                 // The whole reason for the macro: use the package name of the
                 // caller, and not the package name of this common library.
-                $crate::Input::from_search(Some(env!("CARGO_PKG_NAME")))
+                $crate::input::FileInput::from_search(Some(env!("CARGO_PKG_NAME")))
             },
             Err(e) => Err(e),
         };
@@ -36,12 +37,34 @@ macro_rules! input {
     }};
 }
 
-pub struct Input {
+pub trait Input {
+    fn into_buffer(self) -> impl BufRead;
+    fn into_string(self) -> String;
+}
+
+pub struct RawInput {
+    contents: String,
+}
+impl RawInput {
+    pub fn new(s: impl AsRef<str>) -> Self {
+        Self { contents: s.as_ref().to_string() }
+    }
+}
+impl Input for RawInput {
+    fn into_buffer(self) -> impl BufRead {
+        Cursor::new(self.contents)
+    }
+
+    fn into_string(self) -> String {
+        self.contents
+    }
+}
+
+pub struct FileInput {
     file: File,
     path: PathBuf,
 }
-
-impl Input {
+impl FileInput {
     pub fn from_cli() -> Result<Self, IoError> {
         let args = Args::parse();
         match &args.file {
@@ -84,12 +107,13 @@ impl Input {
     pub fn filename(&self) -> &str {
         self.path.to_str().unwrap_or("<invalid>")
     }
-
-    pub fn into_buffer(self) -> BufReader<File> {
+}
+impl Input for FileInput {
+    fn into_buffer(self) -> BufReader<File> {
         BufReader::new(self.file)
     }
 
-    pub fn into_string(mut self) -> String {
+    fn into_string(mut self) -> String {
         let size = self.file.metadata().map(|m| m.len() as usize).unwrap_or(0);
         let mut buffer = String::with_capacity(size);
         self.file.read_to_string(&mut buffer).expect("Failed to read contents of input file");

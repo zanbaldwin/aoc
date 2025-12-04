@@ -1,4 +1,4 @@
-use common::input;
+use common::{Input, input};
 use day01::{STARTING_POSITION, count_zeros_landed, count_zeros_touched, models::InstructionSet};
 
 fn main() {

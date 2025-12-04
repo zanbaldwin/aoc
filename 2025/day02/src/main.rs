@@ -1,4 +1,4 @@
-use common::input;
+use common::{Input, input};
 use day02::parse;
 
 fn main() {

@@ -1,4 +1,4 @@
-use common::input;
+use common::{Input, input};
 use day03::{Error, largest_number_with_digits, parse_banks};
 
 fn main() {
