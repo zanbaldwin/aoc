@@ -2,9 +2,8 @@ use common::{Input, input};
 use day03::{Error, largest_number_with_digits, parse_banks};
 
 fn main() {
-    let input = input!().expect("input error").into_string();
-
-    let banks = parse_banks(&input).unwrap();
+    let input = input!().expect("input error");
+    let banks = parse_banks(input.as_str()).unwrap();
     println!(
         "Part 1: {}",
         banks

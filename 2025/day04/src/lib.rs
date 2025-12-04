@@ -43,8 +43,8 @@ impl Day04 {
 }
 impl Solution for Day04 {
     type Error = Error;
-    fn from_input(input: impl common::Input) -> Result<Self, Self::Error> {
-        let grid = Grid::from_text(input.into_string().as_ref(), Self::grid_symbol)?;
+    fn parse(input: impl common::Input) -> Result<Self, Self::Error> {
+        let grid = Grid::from_text(input.as_str(), Self::grid_symbol)?;
         Ok(Self { grid })
     }
 
@@ -96,14 +96,14 @@ mod test {
     #[test]
     fn test_part1() {
         let input = RawInput::new(TEST_INPUT);
-        let solution = Day04::from_input(input).unwrap();
+        let solution = Day04::parse(input).unwrap();
         assert_eq!("13", solution.part1().unwrap());
     }
 
     #[test]
     fn test_part2() {
         let input = RawInput::new(TEST_INPUT);
-        let solution = Day04::from_input(input).unwrap();
+        let solution = Day04::parse(input).unwrap();
         assert_eq!("43", solution.part2().unwrap());
     }
 }

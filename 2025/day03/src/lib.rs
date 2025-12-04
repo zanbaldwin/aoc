@@ -67,7 +67,7 @@ fn parse_bank(line: &str) -> Result<Bank, Error> {
         .collect::<Result<_, _>>()
 }
 pub fn parse_banks(input: &str) -> Result<Vec<Bank>, Error> {
-    input.trim().lines().map(|l| parse_bank(l)).collect()
+    input.trim().lines().map(parse_bank).collect()
 }
 
 #[cfg(test)]

@@ -1,4 +1,5 @@
 use common::Input;
+use common::input::FileInput;
 use day01::models::InstructionSet;
 use day01::{STARTING_POSITION, count_zeros_landed, count_zeros_touched};
 use divan::Bencher;
@@ -7,7 +8,7 @@ use std::sync::OnceLock;
 static INPUT: OnceLock<String> = OnceLock::new();
 fn input() -> &'static str {
     INPUT.get_or_init(|| {
-        Input::from_search(Some(env!("CARGO_PKG_NAME"))).expect("Could not find input file").into_string()
+        FileInput::from_search(Some(env!("CARGO_PKG_NAME"))).expect("Could not find input file").into_string()
     })
 }
 

@@ -20,25 +20,25 @@ fn main() {
 #[divan::bench]
 fn bench_parse() {
     // TODO: Figure out a _pretty_ way of passing input without unnecessary string allocations.
-    let _ = Day04::from_input(RawInput::new(input()));
+    let _ = Day04::parse(RawInput::new(input()));
 }
 
 #[divan::bench]
 fn bench_part1(bencher: Bencher) {
-    let solution = Day04::from_input(RawInput::new(input())).unwrap();
+    let solution = Day04::parse(RawInput::new(input())).unwrap();
     bencher.bench(|| solution.part1().unwrap());
 }
 
 #[divan::bench]
 fn bench_part2(bencher: Bencher) {
-    let solution = Day04::from_input(RawInput::new(input())).unwrap();
+    let solution = Day04::parse(RawInput::new(input())).unwrap();
     bencher.bench(|| solution.part2().unwrap());
 }
 
 #[divan::bench]
 fn bench_full_solve(bencher: Bencher) {
     bencher.bench(|| {
-        let solution = Day04::from_input(RawInput::new(input())).unwrap();
+        let solution = Day04::parse(RawInput::new(input())).unwrap();
         let part1 = solution.part1().unwrap();
         let part2 = solution.part2().unwrap();
         (part1, part2)

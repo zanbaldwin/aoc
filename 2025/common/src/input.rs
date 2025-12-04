@@ -2,9 +2,11 @@
 #![allow(refining_impl_trait)]
 
 use clap::Parser;
+use std::borrow::Cow;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Cursor, Error as IoError, ErrorKind, Read};
 use std::path::PathBuf;
+use std::sync::OnceLock;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -40,29 +42,35 @@ macro_rules! input {
 pub trait Input {
     fn into_buffer(self) -> impl BufRead;
     fn into_string(self) -> String;
+    fn as_str(&self) -> &str;
 }
 
-pub struct RawInput {
-    contents: String,
+pub struct RawInput<'a> {
+    contents: Cow<'a, str>,
 }
-impl RawInput {
-    pub fn new(s: impl AsRef<str>) -> Self {
-        Self { contents: s.as_ref().to_string() }
+impl<'a> RawInput<'a> {
+    pub fn new(s: impl Into<Cow<'a, str>>) -> Self {
+        Self { contents: s.into() }
     }
 }
-impl Input for RawInput {
+impl<'a> Input for RawInput<'a> {
     fn into_buffer(self) -> impl BufRead {
-        Cursor::new(self.contents)
+        Cursor::new(self.contents.into_owned())
     }
 
     fn into_string(self) -> String {
-        self.contents
+        self.contents.into_owned()
+    }
+
+    fn as_str(&self) -> &str {
+        &self.contents
     }
 }
 
 pub struct FileInput {
     file: File,
     path: PathBuf,
+    contents: OnceLock<String>,
 }
 impl FileInput {
     pub fn from_cli() -> Result<Self, IoError> {
@@ -72,7 +80,7 @@ impl FileInput {
             Some(filepath) => match File::open(filepath) {
                 Ok(file) => {
                     let path = std::fs::canonicalize(filepath).unwrap_or_else(|_| PathBuf::from(filepath));
-                    Ok(Self { file, path })
+                    Ok(Self { file, path, contents: OnceLock::new() })
                 },
                 Err(e) => {
                     let message = format!("Could not find specified input file `{}`", filepath);
@@ -95,7 +103,7 @@ impl FileInput {
         for path in &paths {
             if let Ok(file) = File::open(path) {
                 let path = std::fs::canonicalize(path).unwrap_or_else(|_| PathBuf::from(path));
-                return Ok(Self { file, path });
+                return Ok(Self { file, path, contents: OnceLock::new() });
             }
         }
         Err(IoError::new(
@@ -107,6 +115,17 @@ impl FileInput {
     pub fn filename(&self) -> &str {
         self.path.to_str().unwrap_or("<invalid>")
     }
+
+    fn load(&self) -> String {
+        let size = self.file.metadata().map(|m| m.len() as usize).unwrap_or(0);
+        let mut buffer = String::with_capacity(size);
+        self.file
+            .try_clone()
+            .expect("Could not clone reference to known file")
+            .read_to_string(&mut buffer)
+            .expect("Failed to read contents of input file");
+        buffer
+    }
 }
 impl Input for FileInput {
     fn into_buffer(self) -> BufReader<File> {
@@ -114,9 +133,13 @@ impl Input for FileInput {
     }
 
     fn into_string(mut self) -> String {
-        let size = self.file.metadata().map(|m| m.len() as usize).unwrap_or(0);
-        let mut buffer = String::with_capacity(size);
-        self.file.read_to_string(&mut buffer).expect("Failed to read contents of input file");
-        buffer
+        self.contents.get_or_init(|| self.load());
+        // Will not panic because Option is guaranteed to
+        // be Some due to the last line's initialization.
+        self.contents.take().unwrap()
+    }
+
+    fn as_str(&self) -> &str {
+        self.contents.get_or_init(|| self.load())
     }
 }
